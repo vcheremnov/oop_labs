@@ -47,6 +47,7 @@ std::list<WordItem> WordParser::parse_file(std::istream &is) {
     }
     // sort the list
     wordList.sort(compare);
+    // reset parser's internal info related to this file
     reset();
 
     return wordList;
