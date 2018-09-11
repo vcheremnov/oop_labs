@@ -3,14 +3,15 @@
 #include "csvmaker.h"
 
 enum Argv {
+    ProgName = 0,
     InFile = 1,
     OutFile = 2,
-    argcMin = 3
+    ArgcMin = 3
 };
 
 int main(int argc, char *argv[]) {
-    if (argc < argcMin) {
-        std::cout << "Usage: " << basename(argv[0])
+    if (argc < ArgcMin) {
+        std::cout << "Usage: " << basename(argv[ProgName])
                     << " [in_file] [out_file]" << std::endl;
         return 1;
     }

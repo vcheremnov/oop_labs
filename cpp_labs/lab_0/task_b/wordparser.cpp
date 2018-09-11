@@ -16,13 +16,13 @@ void WordParser::add_word(const std::string &word) {
 
 void WordParser::parse_line(const std::string &line) {
     auto wordStart = line.cbegin();
-    for (auto cur = line.cbegin(); cur != line.cend(); ++cur) {
-        if (isalnum(*cur)) {
+    for (auto iter = line.cbegin(); iter != line.cend(); ++iter) {
+        if (isalnum(*iter)) {
             continue;
         }
-        if (cur != wordStart) {
-            add_word(std::string(wordStart, cur));
-            wordStart = cur + 1;
+        if (iter != wordStart) {
+            add_word(std::string(wordStart, iter));
+            wordStart = iter + 1;
         }
         else {
             ++wordStart;
@@ -43,7 +43,7 @@ std::list<WordItem> WordParser::parse_file(std::istream &is) {
     std::list<WordItem> wordList;
     for (const auto &item: words) {
         wordList.push_back(WordItem(item.first, item.second,
-                                    (double)item.second / wordCount * 100.0));
+                                    static_cast<double>(item.second) / wordCount * 100.0));
     }
     // sort the list
     wordList.sort(compare);

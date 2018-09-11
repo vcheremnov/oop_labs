@@ -2,32 +2,34 @@
 #include <fstream>
 #include "csvmaker.h"
 
-std::list<WordItem> CSVmaker::get_word_list(const std::string &inFile) {
-    std::ifstream ifs(inFile);
-    if (!ifs.is_open()) {
-        std::cerr << "Failed to open " << inFile << "!" << std::endl;
-        return std::list<WordItem>();
+void CSVmaker::get_wordlist_from(std::istream &is) {
+    wordList = parser.parse_file(is);
+}
+
+void CSVmaker::write_records_to(std::ostream &os) {
+    // put records to the stream
+    os.precision(3);   // set precision to 3 decimal places
+    for (const auto &record: wordList) {
+        os << record.word << "," << record.frequency << ","
+            << record.fraction << std::endl;
     }
-    std::list<WordItem> wordList = parser.parse_file(ifs);
-    ifs.close();
-    return wordList;
 }
 
 void CSVmaker::make_csv(const std::string &inFile, const std::string &outFile) {
-    std::list<WordItem> wordList = get_word_list(inFile);
-
-    if (!wordList.empty()) {
-        std::ofstream ofs(outFile);
-        if (!ofs.is_open()) {
-            std::cerr << "Failed to open " << inFile << "!" << std::endl;
-            return;
-        }
-        // put records to the file
-        ofs.precision(3);   // 3 decimal spaces
-        for (const auto &record: wordList) {
-            ofs << record.word << "," << record.frequency << ","
-                << record.fraction << std::endl;
-        }
-        ofs.close();
+    // get word list from the inFile
+    std::ifstream ifs(inFile);
+    if (!ifs.is_open()) {
+        std::cerr << "Failed to open " << inFile << "!" << std::endl;
+        return;
     }
+    get_wordlist_from(ifs);
+    ifs.close();
+    // write csv records to the outFile
+    std::ofstream ofs(outFile);
+    if (!ofs.is_open()) {
+        std::cerr << "Failed to open " << inFile << "!" << std::endl;
+        return;
+    }
+    write_records_to(ofs);
+    ofs.close();
 }

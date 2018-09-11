@@ -1,6 +1,7 @@
 #ifndef CSVMAKER_H
 #define CSVMAKER_H
 
+#include <iostream>
 #include "wordparser.h"
 
 // a simple version of the csv maker
@@ -8,7 +9,10 @@
 
 class CSVmaker {
     WordParser parser;
-    std::list<WordItem> get_word_list(const std::string &inFile);
+    std::list<WordItem> wordList;
+    void get_wordlist_from(std::istream &is);
+    void write_records_to(std::ostream &os);
+    void reset() { wordList.clear(); }
 public:
     CSVmaker() {}
     void make_csv(const std::string &inFile, const std::string &outFile);
