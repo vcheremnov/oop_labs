@@ -3,3 +3,4 @@
 */**/.gitignore
 cpp_labs/builds
 *.autosave
+cpp_labs/gtest

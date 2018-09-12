@@ -26,7 +26,6 @@ class WordParser {
     void parse_line(const std::string &line);
     void reset();                                           // reset internal data
 public:
-    WordParser() {}
     std::list<WordItem> parse_file(std::istream &is);
     void set_comparator(WordItem::Compare cmp) { compare = cmp; }
 };

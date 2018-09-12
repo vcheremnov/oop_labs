@@ -16,6 +16,8 @@ void CSVmaker::write_records_to(std::ostream &os) {
 }
 
 void CSVmaker::make_csv(const std::string &inFile, const std::string &outFile) {
+    // make a cleanup for the previous call
+    reset();
     // get word list from the inFile
     std::ifstream ifs(inFile);
     if (!ifs.is_open()) {
@@ -27,7 +29,7 @@ void CSVmaker::make_csv(const std::string &inFile, const std::string &outFile) {
     // write csv records to the outFile
     std::ofstream ofs(outFile);
     if (!ofs.is_open()) {
-        std::cerr << "Failed to open " << inFile << "!" << std::endl;
+        std::cerr << "Failed to open " << outFile << "!" << std::endl;
         return;
     }
     write_records_to(ofs);
