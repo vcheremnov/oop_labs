@@ -9,10 +9,10 @@
 
 class CSVmaker {
     WordParser parser;
-    std::list<WordItem> wordList;
+    std::list<WordItem> wordlist;
     void get_wordlist_from(std::istream &is);
     void write_records_to(std::ostream &os);
-    void reset() { wordList.clear(); }
+    void reset() { wordlist.clear(); }
 public:
     void make_csv(const std::string &inFile, const std::string &outFile);
 };

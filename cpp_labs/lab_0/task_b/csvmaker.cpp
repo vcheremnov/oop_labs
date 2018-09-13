@@ -3,13 +3,13 @@
 #include "csvmaker.h"
 
 void CSVmaker::get_wordlist_from(std::istream &is) {
-    wordList = parser.parse_file(is);
+    wordlist = parser.get_wordlist_from(is);
 }
 
 void CSVmaker::write_records_to(std::ostream &os) {
     // put records to the stream
     os.precision(3);   // set precision to 3 decimal places
-    for (const auto &record: wordList) {
+    for (const auto &record: wordlist) {
         os << record.word << "," << record.frequency << ","
             << record.fraction << std::endl;
     }

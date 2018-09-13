@@ -1,16 +1,16 @@
 #include "wordparser.h"
 
-bool WordItem::compare_default(const WordItem &first, const WordItem &second) {
+bool WordParser::compare_default(const WordItem &first, const WordItem &second) {
     return first.frequency > second.frequency;
 }
 
 void WordParser::reset() {
-    words.clear();
+    wordCounter.clear();
     wordCount = 0;
 }
 
 void WordParser::add_word(const std::string &word) {
-    words[word] += 1;
+    wordCounter[word] += 1;
     wordCount += 1;
 }
 
@@ -33,22 +33,31 @@ void WordParser::parse_line(const std::string &line) {
     }
 }
 
-std::list<WordItem> WordParser::parse_file(std::istream &is) {
-    // parse file
+void WordParser::parse_file(std::istream &is) {
     std::string line;
     while (std::getline(is, line)) {
         parse_line(line);
     }
-    // make a word list
-    std::list<WordItem> wordList;
-    for (const auto &item: words) {
-        wordList.push_back(WordItem(item.first, item.second,
-                                    static_cast<double>(item.second) / wordCount * 100.0));
+}
+
+std::list<WordItem> WordParser::make_wordlist() {
+    std::list<WordItem> wordlist;
+    for (const auto &item: wordCounter) {
+        wordlist.emplace_back(item.first, item.second,
+                                    static_cast<double>(item.second) / wordCount * 100.0);
     }
-    // sort the list
-    wordList.sort(compare);
-    // reset parser's internal info related to this file
+    return wordlist;
+}
+
+std::list<WordItem> WordParser::get_wordlist_from(std::istream &is) {
+    // parse file & collect word statistics
+    parse_file(is);
+    // make a word list from the collected data
+    std::list<WordItem> wordlist = make_wordlist();
+    // sort the list according to user's comparator
+    wordlist.sort(compare);
+    // clear parser's internal data related to this file
     reset();
 
-    return wordList;
+    return wordlist;
 }

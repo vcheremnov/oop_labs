@@ -3,10 +3,10 @@
 #include "csvmaker.h"
 
 enum Argv {
-    ProgName = 0,
-    InFile = 1,
-    OutFile = 2,
-    ArgcMin = 3
+    ProgName,
+    InFile,
+    OutFile,
+    ArgcMin
 };
 
 int main(int argc, char *argv[]) {
