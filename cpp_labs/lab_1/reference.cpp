@@ -6,6 +6,19 @@ namespace {
     using uint = TritSet::uint;
 }
 
+// constructor
+
+reference::reference(TritSet *setPtr, size_type tritIndex):
+    mSetPtr(setPtr), mElemPtr(nullptr) {
+    mElemIndex = get_element_index(tritIndex);
+    mPos = get_trit_position(tritIndex);
+    if (mElemIndex < mSetPtr->capacity()) {
+        mElemPtr = &mSetPtr->mTritsVec[mElemIndex];
+    }
+}
+
+// static methods
+
 uint reference::get_trit_mask(Trit val) {
     switch (val) {
     case Trit::False:
@@ -31,29 +44,19 @@ Trit reference::get_trit_value(uint tritMask) {
 // assignment
 
 reference &reference::operator= (Trit val) {
-    if (mElemPtr != nullptr) {
-        // reset bits in the needed position
-        *mElemPtr &= ~get_position_mask();
-        // set bits corresponding to the given trit value
-        *mElemPtr |= get_trit_mask(val) << mPos;
+    if (mElemPtr == nullptr) {
+        if (val == Trit::Unknown) {
+            // nothing to set
+            return *this;
+        }
+        // resize associated tritset to store not-unknown value
+        mSetPtr->resize(mElemIndex + 1);
+        mElemPtr = &mSetPtr->mTritsVec[mElemIndex];
     }
-    else if (val != Trit::Unknown) {
-        // not implemented yet
-    }
-
-    return *this;
-}
-
-reference &reference::operator= (const reference &ref) {
-    if (mElemPtr != nullptr) {
-        // reset bits in the needed position
-        *mElemPtr &= ~get_position_mask();
-        // set bits corresponding to the given trit reference
-        *mElemPtr |= ref.get_trit_mask() << mPos;
-    }
-    else if (ref.get_trit_value() != Trit::Unknown) {
-        // not implemented yet
-    }
+    // reset bits in the needed position
+    *mElemPtr &= ~get_position_mask();
+    // set bits corresponding to the given trit value
+    *mElemPtr |= get_trit_mask(val) << mPos;
 
     return *this;
 }

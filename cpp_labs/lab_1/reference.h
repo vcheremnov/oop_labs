@@ -14,10 +14,11 @@ Trit operator~ (Trit val);
 class TritSet::reference {
     friend class TritSet;
     // constructor
-    reference(uint *elemPtr = nullptr, uint pos = 0):
-        mElemPtr(elemPtr), mPos(pos) {}
+    reference(TritSet *setPtr, size_type tritIndex);
     // internal data
-    uint *mElemPtr, mPos;                               // mPos - trit's bit position in the mElement
+    TritSet *mSetPtr;                           // pointer to the associated tritset
+    uint *mElemPtr;                             // pointer to the element storing given trit
+    size_type mElemIndex = 0, mPos = 0;         // index of the storage element / trit position in it
     // bitmasks for every trit value
     static const uint mUnknownMask = 0b00u;
     static const uint mFalseMask = 0b01u;
@@ -26,10 +27,10 @@ class TritSet::reference {
     // static methods
     static Trit get_trit_value(uint tritMask);
     static uint get_trit_mask(Trit val);
-    static uint get_trit_mask(uint elem, uint pos) {
+    static uint get_trit_mask(uint elem, size_type pos) {
         return (elem & get_position_mask(pos)) >> pos;
     }
-    static uint get_position_mask(uint pos) {
+    static uint get_position_mask(size_type pos) {
         return mPosMask << pos;
     }
     // internal methods
@@ -45,7 +46,9 @@ class TritSet::reference {
 public:
     // assignment operators
     reference &operator= (Trit val);
-    reference &operator= (const reference &ref);
+    reference &operator= (const reference &ref) {
+        return *this = ref.get_trit_value();
+    }
     reference &operator&= (const reference &ref) {
         return *this = (*this & ref);
     }
@@ -59,20 +62,33 @@ public:
         return *this = (*this | ref);
     }
     // operations on trits
-    Trit operator& (const reference &ref) const {
-        return get_trit_value() & ref.get_trit_value();
-    }
-    Trit operator| (const reference &ref) const {
-        return get_trit_value() | ref.get_trit_value();
-    }
     Trit operator& (Trit val) const {
         return get_trit_value() & val;
     }
     Trit operator| (Trit val) const {
         return get_trit_value() | val;
     }
+    Trit operator& (const reference &ref) const {
+        return get_trit_value() & ref.get_trit_value();
+    }
+    Trit operator| (const reference &ref) const {
+        return get_trit_value() | ref.get_trit_value();
+    }
     Trit operator~ () const {
         return ~get_trit_value();
+    }
+    // relational operators
+    bool operator== (Trit val) const {
+        return get_trit_value() == val;
+    }
+    bool operator!= (Trit val) const {
+        return get_trit_value() != val;
+    }
+    bool operator== (const reference &ref) const {
+        return get_trit_value() == ref.get_trit_value();
+    }
+    bool operator!= (const reference &ref) const {
+        return get_trit_value() != ref.get_trit_value();
     }
 };
 

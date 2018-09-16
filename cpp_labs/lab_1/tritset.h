@@ -3,9 +3,10 @@
 
 #include <unordered_map>
 #include <cstddef>
+#include <climits>
 #include <vector>
 
-enum Trit {
+enum class Trit {
     Unknown,
     False,
     True
@@ -22,22 +23,12 @@ public:
     // constructors
     TritSet(size_type size = 0);
     // accessors
-    std::unordered_map<Trit, size_type, std::hash<int>> cardinality() const {
-        return mTritCount;
-    }
-    size_type cardinality(Trit value) const {
-        return mTritCount.at(value);
-    }
     size_type capacity() const {
         return mCapacity;
-    }
-    size_type length() const {
-        return mLength;
     }
     // mutators
     void resize(size_type size);
     void shrink();
-    void trim(size_type lastIndex);
     // assignment
     TritSet &operator&= (const TritSet &set) {
         return *this = (*this & set);
@@ -46,18 +37,28 @@ public:
         return *this = (*this | set);
     }
     // trit access
-    Trit operator[] (size_type index) const;
-    reference operator[] (size_type index);
+    Trit operator[] (size_type tritIndex) const;
+    reference operator[] (size_type tritIndex);
     // tritwise operations
     TritSet operator~ () const;
     TritSet operator| (const TritSet &set) const;
     TritSet operator& (const TritSet &set) const;
 private:
-    // member variables
-    size_type mLength = 0;                                          // index of the last not-unknown trit + 1
     size_type mCapacity = 0;                                        // actual size of the tritset
     std::vector<uint> mTritsVec;                                    // storage for the trits
-    std::unordered_map<Trit, size_type, std::hash<int>> mTritCount; // trits occurence counter
+    // static variables
+    static const uint BITS_PER_TRIT = 2u;
+    static const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
+    // private static methods
+    static size_type get_storage_length(size_type tritsNum) {
+        return tritsNum / TRITS_PER_INT + (tritsNum % TRITS_PER_INT != 0);
+    }
+    static size_type get_element_index(size_type tritIndex) {
+        return tritIndex / TRITS_PER_INT;
+    }
+    static size_type get_trit_position(size_type tritIndex) {
+        return tritIndex % TRITS_PER_INT * BITS_PER_TRIT;
+    }
 };
 
 #endif // TRITSET_H
