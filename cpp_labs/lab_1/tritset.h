@@ -16,11 +16,11 @@ public:
     // class types
     using uint = unsigned int;
     using size_type = std::size_t;
-    // reference class declaration
+    // reference to the trit
     class reference;
+    friend class reference;
     // constructors
     TritSet(size_type size = 0);
-    TritSet(const TritSet &set) = default;
     // accessors
     std::unordered_map<Trit, size_type, std::hash<int>> cardinality() const {
         return mTritCount;
@@ -39,52 +39,25 @@ public:
     void shrink();
     void trim(size_type lastIndex);
     // assignment
-    TritSet &operator= (const TritSet &set) = default;
-    TritSet &operator&= (const TritSet &set);
-    TritSet &operator|= (const TritSet &set);
+    TritSet &operator&= (const TritSet &set) {
+        return *this = (*this & set);
+    }
+    TritSet &operator|= (const TritSet &set) {
+        return *this = (*this | set);
+    }
     // trit access
     Trit operator[] (size_type index) const;
     reference operator[] (size_type index);
-    // ternary operations
+    // tritwise operations
     TritSet operator~ () const;
     TritSet operator| (const TritSet &set) const;
     TritSet operator& (const TritSet &set) const;
 private:
     // member variables
-    size_type mLength = 0;          // index of the last not-unknown trit + 1
-    size_type mCapacity = 0;        // actual size of the tritset
-    std::vector<uint> mTritsVec;
-    std::unordered_map<Trit, size_type, std::hash<int>> mTritCount;
-};
-
-// A proxy class for accessing individual trits in TritSet
-
-class TritSet::reference {
-    friend class TritSet;
-    reference(uint &element, uint pos):
-        mElement(element), mPos(pos) {}
-    uint &mElement, mPos;           // mPos - trit position in the mElement (in bits)
-    // Masks for every trit value
-    static const uint mUnknownMask = 0b00u;
-    static const uint mFalseMask = 0b01u;
-    static const uint mTrueMask = 0b10u;
-    // internal methods
-    static uint get_trit_mask(Trit val);
-    static Trit get_trit_value(uint tritMask);
-    static Trit inverted_trit_value(Trit val);
-    uint get_trit_mask_from(const reference &ref) const {
-        return ref.mElement & ref.get_position_mask();
-    }
-    uint get_position_mask() const {
-        return 0b11u << mPos;
-    }
-    void set_trit(uint tritMask) {
-        mElement = (mElement && ~get_position_mask()) | (tritMask << mPos);
-    }
-public:
-    reference &operator= (Trit val);
-    reference &operator= (const reference &ref);
-    Trit operator~ () const;
+    size_type mLength = 0;                                          // index of the last not-unknown trit + 1
+    size_type mCapacity = 0;                                        // actual size of the tritset
+    std::vector<uint> mTritsVec;                                    // storage for the trits
+    std::unordered_map<Trit, size_type, std::hash<int>> mTritCount; // trits occurence counter
 };
 
 #endif // TRITSET_H

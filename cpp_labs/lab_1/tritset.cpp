@@ -1,18 +1,31 @@
 #include <climits>
 #include "tritset.h"
+#include "reference.h"
+
+// auxiliary stuff
 
 namespace {
     using reference = TritSet::reference;
     using size_type = TritSet::size_type;
     using uint = TritSet::uint;
-    const uint BITS_PER_TRIT = 2u;
 
-    size_type div_ceil(size_type numerator, size_type denominator) {
+    const uint BITS_PER_TRIT = 2u;
+    const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
+
+    inline size_type div_ceil(size_type numerator, size_type denominator) {
         return numerator / denominator + (numerator % denominator != 0);
     }
 
-    size_type get_vector_length(TritSet::size_type tritsNum) {
-        return div_ceil(BITS_PER_TRIT * tritsNum, CHAR_BIT * sizeof(uint));
+    inline size_type get_vector_length(size_type tritsNum) {
+        return div_ceil(tritsNum, TRITS_PER_INT);
+    }
+
+    inline size_type get_vector_index(size_type tritIndex) {
+        return tritIndex / TRITS_PER_INT;
+    }
+
+    inline size_type get_trit_position(size_type tritIndex) {
+        return tritIndex % TRITS_PER_INT;
     }
 }
 
@@ -41,102 +54,68 @@ void TritSet::shrink() {
     mTritsVec.shrink_to_fit();
 }
 
-void TritSet::trim(size_type lastIndex) {
-
-}
-
-// assignment
-
-TritSet &TritSet::operator&= (const TritSet &set) {
-
-}
-
-TritSet &TritSet::operator|= (const TritSet &set) {
-
+void TritSet::trim(size_type lastIndex) {       // remake!
+    for (size_type ix = lastIndex; ix < mLength; ++ix) {
+        mTritsVec[ix] = Trit::Unknown;
+    }
+    // find the new mLength value:
+    // not implemented yet
 }
 
 // trit access
 
 Trit TritSet::operator[] (size_type index) const {
-
+    if (index < mCapacity) {
+        // get vector's element index and trit's position in this element
+        size_type vecIndex = get_vector_index(index);
+        size_type tritPos = get_trit_position(index);
+        // get trit value through the trit mask
+        uint tritMask = reference::get_trit_mask(mTritsVec[vecIndex], tritPos * BITS_PER_TRIT);
+        return reference::get_trit_value(tritMask);
+    }
+    return Trit::Unknown;
 }
 
 reference TritSet::operator[] (size_type index) {
-
+    if (index < mCapacity) {
+        // get vector's element index and trit's position in this element
+        size_type vecIndex = get_vector_index(index);
+        size_type tritPos = get_trit_position(index);
+        // return reference to the trit
+        return reference(&mTritsVec[vecIndex], tritPos * BITS_PER_TRIT);
+    }
+    // reference to the non-existing object
+    return reference();
 }
 
-// ternary operations
+// tritwise operations
 
 TritSet TritSet::operator~ () const {
-
+    TritSet resultSet(*this);
+    for (size_type ix = 0; ix < capacity(); ++ix) {
+        resultSet[ix] = ~resultSet[ix];
+    }
+    return resultSet;
 }
 
 TritSet TritSet::operator| (const TritSet &set) const {
-
+    TritSet resultSet(*this);
+    if (resultSet.capacity() < set.capacity()) {
+        resultSet.resize(set.capacity());
+    }
+    for (size_type ix = 0; ix < mCapacity; ++ix) {
+        resultSet[ix] |= set[ix];
+    }
+    return resultSet;
 }
 
 TritSet TritSet::operator& (const TritSet &set) const {
-
-}
-
-// TritSet::reference implementation
-
-uint reference::get_trit_mask(Trit val) {
-    switch (val) {
-    case Trit::False:
-        return mFalseMask;
-    case Trit::True:
-        return mTrueMask;
-    default:
-        return mUnknownMask;
+    TritSet resultSet(*this);
+    if (resultSet.capacity() < set.capacity()) {
+        resultSet.resize(set.capacity());
     }
-}
-
-Trit reference::get_trit_value(uint tritMask) {
-    switch (tritMask) {
-    case mFalseMask:
-        return Trit::False;
-    case mTrueMask:
-        return Trit::True;
-    default:
-        return Trit::Unknown;
+    for (size_type ix = 0; ix < mCapacity; ++ix) {
+        resultSet[ix] &= set[ix];
     }
-}
-
-Trit reference::inverted_trit_value(Trit val) {
-    switch (val) {
-    case Trit::False:
-        return Trit::True;
-    case Trit::True:
-        return Trit::False;
-    default:
-        return Trit::Unknown;
-    }
-}
-
-reference &reference::operator= (Trit val) {
-    // get a bitmask for the given trit value
-    uint tritMask = get_trit_mask(val);
-    // refresh element's value
-    set_trit(tritMask);
-
-    return *this;
-}
-
-reference &reference::operator= (const reference &ref) {
-    // retrieve trit mask from the given object
-    uint tritMask = get_trit_mask_from(ref);
-    // refresh element's value
-    set_trit(tritMask);
-
-    return *this;
-}
-
-Trit reference::operator~ () const {
-    // retrieve trit mask from the current object
-    uint tritMask = get_trit_mask_from(*this);
-    // get a trit's value from its bitmask
-    Trit tritValue = get_trit_value(tritMask >> mPos);
-
-    return inverted_trit_value(tritValue);
+    return resultSet;
 }
