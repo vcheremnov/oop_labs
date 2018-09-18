@@ -1,9 +1,10 @@
 #include <climits>
 #include "tritset.h"
 #include "reference.h"
+#include "trit_handler.h"
 
 namespace {
-    using reference = TritSet::reference;
+    using reference = TritSet::Reference;
     using size_type = TritSet::size_type;
     using uint = TritSet::uint;
 }
@@ -16,21 +17,19 @@ TritSet::TritSet(size_type size):
 // mutators
 
 void TritSet::resize(size_type size) {
-    size_type vecSize = get_storage_length(size);
-    mTritsVec.resize(vecSize);
+    mCapacity = get_storage_length(size);
+    mTritsVec.resize(mCapacity);
+    mTritsVec.shrink_to_fit();
 }
 
 void TritSet::shrink() {
-    // get current tritset length in trits
-    size_type setLength = capacity() * TRITS_PER_INT;
     // search the last not-unknown trit's index from the end
-    for (; setLength > 0; --setLength) {
-        if ((*this)[setLength - 1] != Trit::Unknown) {
+    for (; mCapacity > 0; --mCapacity) {
+        if ((*this)[mCapacity - 1] != Trit::Unknown) {
             break;
         }
     }
-    resize(get_storage_length(setLength));
-    mTritsVec.shrink_to_fit();
+    resize(mCapacity);
 }
 
 // trit access
@@ -40,15 +39,14 @@ Trit TritSet::operator[] (size_type index) const {
         // get vector's element index and trit's position in this element
         size_type vecIndex = get_element_index(index);
         size_type tritPos = get_trit_position(index);
-        // get trit value through the trit mask
-        uint tritMask = reference::get_trit_mask(mTritsVec[vecIndex], tritPos);
-        return reference::get_trit_value(tritMask);
+        // get trit value
+        return TritHandler::get_value(mTritsVec[vecIndex], tritPos);
     }
     return Trit::Unknown;
 }
 
 reference TritSet::operator[] (size_type tritIndex) {
-    return reference(this, tritIndex);
+    return Reference(this, tritIndex);
 }
 
 // tritwise operations

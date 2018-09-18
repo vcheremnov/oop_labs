@@ -1,16 +1,10 @@
 #ifndef TRITSET_H
 #define TRITSET_H
 
-#include <unordered_map>
 #include <cstddef>
 #include <climits>
 #include <vector>
-
-enum class Trit {
-    Unknown,
-    False,
-    True
-};
+#include "tritwise_operations.h"
 
 class TritSet {
 public:
@@ -18,8 +12,11 @@ public:
     using uint = unsigned int;
     using size_type = std::size_t;
     // reference to the trit
-    class reference;
-    friend class reference;
+    class Reference;
+    friend class Reference;
+    // trit handler
+    class TritHandler;
+    friend class TritHandler;
     // constructors
     TritSet(size_type size = 0);
     // accessors
@@ -38,7 +35,7 @@ public:
     }
     // trit access
     Trit operator[] (size_type tritIndex) const;
-    reference operator[] (size_type tritIndex);
+    Reference operator[] (size_type tritIndex);
     // tritwise operations
     TritSet operator~ () const;
     TritSet operator| (const TritSet &set) const;
@@ -49,6 +46,13 @@ private:
     // static variables
     static const uint BITS_PER_TRIT = 2u;
     static const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
+    // private methods
+    uint &get_elem_for(size_type tritIndex) {
+        return mTritsVec[get_element_index(tritIndex)];
+    }
+    const uint &get_elem_for(size_type tritIndex) const {
+        return mTritsVec[get_element_index(tritIndex)];
+    }
     // private static methods
     static size_type get_storage_length(size_type tritsNum) {
         return tritsNum / TRITS_PER_INT + (tritsNum % TRITS_PER_INT != 0);
@@ -57,7 +61,7 @@ private:
         return tritIndex / TRITS_PER_INT;
     }
     static size_type get_trit_position(size_type tritIndex) {
-        return tritIndex % TRITS_PER_INT * BITS_PER_TRIT;
+        return tritIndex % TRITS_PER_INT;
     }
 };
 
