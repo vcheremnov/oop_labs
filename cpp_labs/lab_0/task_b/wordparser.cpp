@@ -1,7 +1,8 @@
 #include "wordparser.h"
 
 bool WordParser::compare_default(const WordItem &first, const WordItem &second) {
-    return first.frequency > second.frequency;
+    return (first.frequency == second.frequency) ?
+                first.word < second.word : first.frequency > second.frequency;
 }
 
 void WordParser::reset() {
