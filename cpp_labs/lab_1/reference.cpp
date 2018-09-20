@@ -12,9 +12,8 @@ namespace {
 Reference::Reference(TritSet *setPtr, size_type tritIndex):
     mSetPtr(setPtr), mElemPtr(nullptr), mTritIndex(tritIndex) {
 
-    mElemIndex = get_element_index(tritIndex);
     mPos = get_trit_position(tritIndex);
-    if (mElemIndex < mSetPtr->capacity()) {
+    if (tritIndex < mSetPtr->capacity()) {
         mElemPtr = &mSetPtr->get_elem_for(tritIndex);
     }
 }
@@ -28,7 +27,7 @@ Reference &Reference::operator= (Trit val) {
             return *this;
         }
         // resize associated tritset to store not-unknown value
-        mSetPtr->resize(mTritIndex);
+        mSetPtr->resize(mTritIndex + 1);
         mElemPtr = &mSetPtr->get_elem_for(mTritIndex);
     }
     TritHandler::set_value(val, *mElemPtr, mPos);

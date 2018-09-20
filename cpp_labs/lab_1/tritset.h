@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <climits>
 #include <vector>
+#include <iostream>
 #include "tritwise_operations.h"
 
 class TritSet {
@@ -23,6 +24,7 @@ public:
     size_type capacity() const {
         return mCapacity;
     }
+    std::string get_string_repr() const;
     // mutators
     void resize(size_type size);
     void shrink();
@@ -48,10 +50,10 @@ private:
     static const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
     // private methods
     uint &get_elem_for(size_type tritIndex) {
-        return mTritsVec[get_element_index(tritIndex)];
+        return mTritsVec.at(get_element_index(tritIndex));
     }
     const uint &get_elem_for(size_type tritIndex) const {
-        return mTritsVec[get_element_index(tritIndex)];
+        return mTritsVec.at(get_element_index(tritIndex));
     }
     // private static methods
     static size_type get_storage_length(size_type tritsNum) {
@@ -64,5 +66,7 @@ private:
         return tritIndex % TRITS_PER_INT;
     }
 };
+
+std::ostream &operator<< (std::ostream &os, const TritSet &set);
 
 #endif // TRITSET_H

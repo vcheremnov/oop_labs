@@ -7,8 +7,9 @@
 
 class TritSet::TritHandler {
 public:
-    static Trit get_value(const uint &element, size_type tritPos);
-    static void set_value(Trit value, uint &element, size_type tritPos);
+    static Trit get_value(const uint &element, size_type pos);
+    static void set_value(Trit value, uint &element, size_type pos);
+    static void set_value(Trit value, uint &element, size_type begPos, size_type endPos);
 private:
     // bitmasks for every trit value
     static const uint mUnknownMask = 0b00u;
@@ -19,7 +20,13 @@ private:
     static Trit get_trit_value(uint tritMask);
     static uint get_trit_mask(Trit val);
     static uint get_position_mask(size_type pos) {
-        return mPosMask << pos * BITS_PER_TRIT;
+        return mPosMask << (pos * BITS_PER_TRIT);
+    }
+    static uint shift_left(uint mask, size_type posShift) {
+        return mask << (posShift * BITS_PER_TRIT);
+    }
+    static uint shift_right(uint mask, size_type posShift) {
+        return mask >> (posShift * BITS_PER_TRIT);
     }
 };
 

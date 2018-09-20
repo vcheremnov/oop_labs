@@ -10,8 +10,12 @@
 class TritSet::Reference {
 public:
     friend class TritSet;
-    Trit value() const {                                    // get value of the reference
-        return TritHandler::get_value(*mElemPtr, mPos);
+    // conversion to Trit
+    operator Trit() const { return value(); }
+    // get Trit value of the reference
+    Trit value() const {
+        return (mElemPtr == nullptr) ?
+                    Trit::Unknown : TritHandler::get_value(*mElemPtr, mPos);
     }
     // assignment operators
     Reference &operator= (Trit val);
@@ -30,41 +34,13 @@ public:
     Reference &operator|= (const Reference &ref) {
         return *this = (*this | ref);
     }
-    // operations on trits
-    Trit operator& (Trit val) const {
-        return value() & val;
-    }
-    Trit operator| (Trit val) const {
-        return value() | val;
-    }
-    Trit operator& (const Reference &ref) const {
-        return value() & ref.value();
-    }
-    Trit operator| (const Reference &ref) const {
-        return value() | ref.value();
-    }
-    Trit operator~ () const {
-        return ~value();
-    }
-    // relational operators
-    bool operator== (Trit val) const {
-        return value() == val;
-    }
-    bool operator!= (Trit val) const {
-        return value() != val;
-    }
-    bool operator== (const Reference &ref) const {
-        return value() == ref.value();
-    }
-    bool operator!= (const Reference &ref) const {
-        return value() != ref.value();
-    }
 private:
     Reference(TritSet *setPtr, size_type tritIndex);
     // internal data
     TritSet *mSetPtr;                           // pointer to the associated tritset
     uint *mElemPtr;                             // pointer to the element storing given trit
-    size_type mTritIndex, mElemIndex, mPos;
+    size_type mTritIndex;                       // trit's index in the tritset
+    size_type mPos;                             // trit's position in the tritset's storage element
 };
 
 #endif // REFERENCE_H

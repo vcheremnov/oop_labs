@@ -1,4 +1,5 @@
 #include <climits>
+#include <sstream>
 #include "tritset.h"
 #include "reference.h"
 #include "trit_handler.h"
@@ -17,19 +18,50 @@ TritSet::TritSet(size_type size):
 // mutators
 
 void TritSet::resize(size_type size) {
-    mCapacity = get_storage_length(size);
-    mTritsVec.resize(mCapacity);
+    mCapacity = size;
+    size_type storageSize = get_storage_length(size);
+    mTritsVec.resize(storageSize);
     mTritsVec.shrink_to_fit();
+    // clear the residual trits within the last element of the storage
+    if (storageSize > 0) {
+        size_type begPos = get_trit_position(mCapacity), endPos = TRITS_PER_INT;
+        TritHandler::set_value(Trit::Unknown, mTritsVec.back(), begPos, endPos);
+    }
 }
 
 void TritSet::shrink() {
     // search the last not-unknown trit's index from the end
-    for (; mCapacity > 0; --mCapacity) {
-        if ((*this)[mCapacity - 1] != Trit::Unknown) {
+    size_type newCapacity = capacity();
+    for (; newCapacity > 0; --newCapacity) {
+        if ((*this)[newCapacity - 1] != Trit::Unknown) {
             break;
         }
     }
-    resize(mCapacity);
+    resize(newCapacity);
+}
+
+// string representation & output
+
+std::ostream &operator<< (std::ostream &os, const TritSet &set) {
+    for (size_type ix = 0; ix < set.capacity(); ++ix) {
+        switch (set[ix]) {
+        case Trit::False:
+            os << '0';
+            break;
+        case Trit::True:
+            os << '1';
+            break;
+        default:
+            os << '?';
+        }
+    }
+    return os;
+}
+
+std::string TritSet::get_string_repr() const {
+    std::stringstream ss;
+    ss << *this;
+    return ss.str();
 }
 
 // trit access

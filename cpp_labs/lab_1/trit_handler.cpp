@@ -6,17 +6,29 @@ namespace {
     using uint = TritSet::uint;
 }
 
-Trit TritHandler::get_value(const uint &element, size_type tritPos) {
-    uint tritMask = element & get_position_mask(tritPos);
-    tritMask >>= tritPos * BITS_PER_TRIT;
+Trit TritHandler::get_value(const uint &element, size_type pos) {
+    uint tritMask = element & get_position_mask(pos);
+    tritMask = shift_right(tritMask, pos);
     return get_trit_value(tritMask);
 }
 
-void TritHandler::set_value(Trit value, uint &element, size_type tritPos) {
+void TritHandler::set_value(Trit value, uint &element, size_type pos) {
     // disable bits in trit's position
-    element &= ~get_position_mask(tritPos);
+    element &= ~get_position_mask(pos);
     // set bits representing requested trit value
-    element |= get_trit_mask(value) << (tritPos * BITS_PER_TRIT);
+    uint tritMask = get_trit_mask(value);
+    element |= shift_left(tritMask, pos);
+}
+
+void TritHandler::set_value(Trit value, uint &element, size_type begPos, size_type endPos) {
+    uint posMask = shift_left(mPosMask, begPos);
+    uint tritMask = shift_left(get_trit_mask(value), begPos);
+    for (size_type pos = begPos; pos < endPos; ++pos) {
+        element &= ~posMask;
+        element |= tritMask;
+        posMask = shift_left(posMask, 1);
+        tritMask = shift_left(tritMask, 1);
+    }
 }
 
 uint TritHandler::get_trit_mask(Trit val) {
