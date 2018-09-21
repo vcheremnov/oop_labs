@@ -14,7 +14,6 @@ public:
     using size_type = std::size_t;
     // reference to the trit
     class Reference;
-    friend class Reference;
     // trit handler
     class TritHandler;
     friend class TritHandler;

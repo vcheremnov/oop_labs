@@ -22,17 +22,11 @@ public:
     Reference &operator= (const Reference &ref) {
         return *this = ref.value();
     }
-    Reference &operator&= (const Reference &ref) {
-        return *this = (*this & ref);
-    }
     Reference &operator|= (Trit val) {
         return *this = (*this | val);
     }
     Reference &operator&= (Trit val) {
         return *this = (*this & val);
-    }
-    Reference &operator|= (const Reference &ref) {
-        return *this = (*this | ref);
     }
 private:
     Reference(TritSet *setPtr, size_type tritIndex);

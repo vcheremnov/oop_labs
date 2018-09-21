@@ -5,7 +5,7 @@
 #include "trit_handler.h"
 
 namespace {
-    using reference = TritSet::Reference;
+    using Reference = TritSet::Reference;
     using size_type = TritSet::size_type;
     using uint = TritSet::uint;
 }
@@ -77,7 +77,7 @@ Trit TritSet::operator[] (size_type index) const {
     return Trit::Unknown;
 }
 
-reference TritSet::operator[] (size_type tritIndex) {
+Reference TritSet::operator[] (size_type tritIndex) {
     return Reference(this, tritIndex);
 }
 
