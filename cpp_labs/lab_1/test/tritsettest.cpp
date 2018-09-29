@@ -2,18 +2,11 @@
 #include <iostream>
 #include <sstream>
 #include "../tritset.h"
-#include "../trit_handler.h"
+#include "../tritset_aux.h"
 #include "../reference.h"
-#include "../tritwise_operations.h"
+#include "../trits.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-
-namespace {
-    using TritHandler = TritSet::TritHandler;
-    using Reference = TritSet::Reference;
-    using size_type = TritSet::size_type;
-    using uint = TritSet::uint;
-}
 
 // Tritwise operations
 
@@ -59,22 +52,22 @@ TEST(TritHandlerTest, TritHandler_general) {
     uint element = 0;
     // set different values and check them by get_value(..)
     size_type pos1 = 0;
-    TritHandler::set_value(Trit::False, element, pos1);
-    ASSERT_EQ(TritHandler::get_value(element, pos1), Trit::False);
+    TritSetAux::set_value(Trit::False, element, pos1);
+    ASSERT_EQ(TritSetAux::get_value(element, pos1), Trit::False);
 
     size_type pos2 = maxPos / 2;
-    TritHandler::set_value(Trit::Unknown, element, pos2);
-    ASSERT_EQ(TritHandler::get_value(element, pos2), Trit::Unknown);
+    TritSetAux::set_value(Trit::Unknown, element, pos2);
+    ASSERT_EQ(TritSetAux::get_value(element, pos2), Trit::Unknown);
 
     size_type pos3 = maxPos * 3 / 4;
-    TritHandler::set_value(Trit::True, element, pos3);
-    ASSERT_EQ(TritHandler::get_value(element, pos3), Trit::True);
+    TritSetAux::set_value(Trit::True, element, pos3);
+    ASSERT_EQ(TritSetAux::get_value(element, pos3), Trit::True);
 
     // set several values at once & check
     size_type begPos = maxPos / 3, endPos = maxPos;
-    TritHandler::set_value(Trit::True, element, begPos, endPos);
+    TritSetAux::set_value(Trit::True, element, begPos, endPos);
     for (size_type pos = begPos; pos < endPos; ++pos ) {
-        ASSERT_EQ(TritHandler::get_value(element, pos), Trit::True);
+        ASSERT_EQ(TritSetAux::get_value(element, pos), Trit::True);
     }
 }
 
@@ -211,10 +204,12 @@ TEST(TritSetTest, TritSet_shrink) {
     // shrink the set
     set.shrink();
     ASSERT_EQ(set.capacity(), size / 2 + 1);
+    ASSERT_EQ(set.length(), size / 2 + 1);
     // shrink to the empty size
     set[size / 2] = Trit::Unknown;
     set.shrink();
     ASSERT_EQ(set.capacity(), 0u);
+    ASSERT_EQ(set.length(), 0u);
 }
 
 TEST(TritSetTest, TritSet_const_subscript) {

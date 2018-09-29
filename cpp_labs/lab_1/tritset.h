@@ -5,7 +5,8 @@
 #include <climits>
 #include <vector>
 #include <iostream>
-#include "tritwise_operations.h"
+#include <unordered_map>
+#include "trits.h"
 
 class TritSet {
 public:
@@ -14,19 +15,23 @@ public:
     using size_type = std::size_t;
     // reference to the trit
     class Reference;
-    // trit handler
-    class TritHandler;
-    friend class TritHandler;
     // constructors
     TritSet(size_type size = 0);
     // accessors
     size_type capacity() const {
         return mCapacity;
     }
+    size_type length() const;
+    size_type cardinality(Trit value) const;
+    std::unordered_map<Trit, size_type, TritHash> cardinality() const;
+    // string representation
     std::string get_string_repr() const;
-    // mutators
+    // modifiers
+    void shrink() {
+        resize(length());
+    }
     void resize(size_type size);
-    void shrink();
+    void trim(size_type lastIndex);
     // assignment
     TritSet &operator&= (const TritSet &set) {
         return *this = (*this & set);
@@ -35,7 +40,9 @@ public:
         return *this = (*this | set);
     }
     // trit access
-    Trit operator[] (size_type tritIndex) const;
+    Trit operator[] (size_type tritIndex) const {
+        return get_value_at(tritIndex);
+    }
     Reference operator[] (size_type tritIndex);
     // tritwise operations
     TritSet operator~ () const;
@@ -43,27 +50,11 @@ public:
     TritSet operator& (const TritSet &set) const;
 private:
     size_type mCapacity = 0;                                        // actual size of the tritset
-    std::vector<uint> mTritsVec;                                    // storage for the trits
-    // static variables
-    static const uint BITS_PER_TRIT = 2u;
-    static const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
+    std::vector<uint> mStorage;                                     // storage for the trits
     // private methods
-    uint &get_elem_for(size_type tritIndex) {
-        return mTritsVec.at(get_element_index(tritIndex));
-    }
-    const uint &get_elem_for(size_type tritIndex) const {
-        return mTritsVec.at(get_element_index(tritIndex));
-    }
-    // private static methods
-    static size_type get_storage_length(size_type tritsNum) {
-        return tritsNum / TRITS_PER_INT + (tritsNum % TRITS_PER_INT != 0);
-    }
-    static size_type get_element_index(size_type tritIndex) {
-        return tritIndex / TRITS_PER_INT;
-    }
-    static size_type get_trit_position(size_type tritIndex) {
-        return tritIndex % TRITS_PER_INT;
-    }
+    uint *get_elem_address(size_type tritIndex);
+    const uint *get_elem_address(size_type tritIndex) const;
+    Trit get_value_at(size_type tritIndex) const;
 };
 
 std::ostream &operator<< (std::ostream &os, const TritSet &set);

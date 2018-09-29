@@ -2,20 +2,18 @@
 #define REFERENCE_H
 
 #include "tritset.h"
-#include "trit_handler.h"
-#include "tritwise_operations.h"
+#include "trits.h"
 
 // A proxy class for accessing individual trits in TritSet
 
 class TritSet::Reference {
-public:
     friend class TritSet;
+public:
+    // get value of the reference
+    Trit value() const;
     // conversion to Trit
-    operator Trit() const { return value(); }
-    // get Trit value of the reference
-    Trit value() const {
-        return (mElemPtr == nullptr) ?
-                    Trit::Unknown : TritHandler::get_value(*mElemPtr, mPos);
+    operator Trit() const {
+        return value();
     }
     // assignment operators
     Reference &operator= (Trit val);
@@ -29,12 +27,12 @@ public:
         return *this = (*this & val);
     }
 private:
-    Reference(TritSet *setPtr, size_type tritIndex);
+    Reference(TritSet &set, size_type tritIndex);
     // internal data
-    TritSet *mSetPtr;                           // pointer to the associated tritset
+    TritSet &mSet;                              // reference to the associated tritset
     uint *mElemPtr;                             // pointer to the element storing given trit
     size_type mTritIndex;                       // trit's index in the tritset
-    size_type mPos;                             // trit's position in the tritset's storage element
+    size_type mPos;                             // trit's position within the tritset's storage element
 };
 
 #endif // REFERENCE_H

@@ -1,4 +1,4 @@
-#include "tritwise_operations.h"
+#include "trits.h"
 
 Trit operator& (Trit val1, Trit val2) {
     if (val1 == Trit::True) {
