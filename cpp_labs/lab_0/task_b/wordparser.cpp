@@ -1,58 +1,51 @@
+#include <cctype>
+#include <algorithm>
 #include "wordparser.h"
 
 namespace Words {
-    bool Parser::compare_default(const Record &left, const Record &right) {
-        // sorts by the word occurrence in descending order
-        // if equal, sorts by words in alphabetical order
-        return (left.second == right.second) ?
-                    left.first < right.first : left.second > right.second;
-    }
 
-    void Parser::add_word(const std::string &word) {
-        wordCounter[word] += 1;
-    }
+// public methods
 
-    void Parser::parse_line(const std::string &line) {
-        auto wordStart = line.cbegin();
-        for (auto iter = line.cbegin(); iter != line.cend(); ++iter) {
-            if (isalnum(*iter)) {
-                continue;
-            }
-            if (iter != wordStart) {
-                add_word(std::string(wordStart, iter));
-                wordStart = iter + 1;
-            }
-            else {
-                ++wordStart;
-            }
-        }
-        if (wordStart != line.cend()) {
-            add_word(std::string(wordStart, line.cend()));
-        }
-    }
-
-    void Parser::parse_file(std::istream &is) {
-        std::string line;
-        while (std::getline(is, line)) {
-            parse_line(line);
-        }
-    }
-
-    std::list<Record> Parser::make_wordlist() {
-        return std::list<Record>(wordCounter.begin(), wordCounter.end());
-    }
-
-    std::list<Record> Parser::get_wordlist_from(std::istream &is) {
-        // parse file & collect word statistics
-        parse_file(is);
-        // make a word list from the collected data
-        std::list<Record> wordlist = make_wordlist();
-        // sort the list according to comparator
-        wordlist.sort(mComparator);
-        // clear parser's internal data
-        wordCounter.clear();
-
-        return wordlist;
-    }
+Parser::Parser(std::istream &is):  _is(is) {
+    _linePos = _curLine.cbegin();
 }
+
+bool Parser::get_word(std::string &word) {
+    // discard the word's content
+    word.clear();
+    // alphanumeric sequence's boundaries
+    auto wordStart = _linePos, wordEnd = wordStart;
+    while (!has_reached_end()) {
+        // find the first alphanumeric character in the line
+        wordStart = std::find_if(_linePos, _curLine.cend(), safe_isalnum);
+        // find the end of the alphanumeric sequence starting from the wordStart
+        wordEnd = std::find_if_not(wordStart, _curLine.cend(), safe_isalnum);
+        // move current position to the end of the sequence
+        _linePos = wordEnd;
+        // check if a sequence is not empty
+        if (wordStart != wordEnd) {
+            // copy sequence to the word
+            word.assign(wordStart, wordEnd);
+            // success: a word has been retrieved
+            return true;
+        }
+        // end of the line has been reached; get the next one
+        get_line();
+    }
+    // failure: end of file has been reached
+    return false;
+}
+
+// private methods
+
+void Parser::get_line() {
+    std::getline(_is, _curLine);
+    _linePos = _curLine.cbegin();
+}
+
+bool Parser::safe_isalnum(unsigned char ch) {
+    return std::isalnum(ch);
+}
+
+} // namespace Words
 

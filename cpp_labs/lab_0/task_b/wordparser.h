@@ -1,32 +1,28 @@
 #ifndef WORDPARSER_H
 #define WORDPARSER_H
 
-#include <list>
+#include <string>
 #include <iostream>
-#include <unordered_map>
 
 namespace Words {
-    using Record = std::pair<std::string, unsigned>;
-    using Compare = bool (*)(const Record&, const Record&);
 
-    class Parser {
-    public:
-        // comparator
-        static bool compare_default(const Record&, const Record&);
-        // public methods
-        std::list<Record> get_wordlist_from(std::istream &is);
-        void set_comparator(Compare cmp) {
-            mComparator = cmp;
-        }
-    private:
-        Compare mComparator = compare_default;                      // comparator for sorting
-        std::unordered_map<std::string, unsigned> wordCounter;      // counts word occurrences
-        // private methods
-        void add_word(const std::string &word);
-        void parse_line(const std::string &line);
-        void parse_file(std::istream &is);
-        std::list<Record> make_wordlist();
-    };
-}
+class Parser {
+public:
+    // public methods
+    Parser(std::istream &is);
+    bool get_word(std::string &word);               // retrieve the next word from the stream
+    bool has_reached_end() {                        // checks if the parser has reached the EOF
+        return _is.eof();
+    }
+private:
+    std::istream &_is;                              // input stream associated with the parser
+    std::string _curLine;                           // current line
+    std::string::const_iterator _linePos;           // current position in the current line
+    // private methods
+    void get_line();                                // get the next line from the stream
+    static bool safe_isalnum(unsigned char ch);     // safe version of the std::isalnum
+};
+
+} // namespace Words
 
 #endif // WORDPARSER_H

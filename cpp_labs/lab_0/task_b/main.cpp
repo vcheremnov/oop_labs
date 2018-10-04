@@ -3,12 +3,14 @@
 #include "operating_modes.h"
 
 namespace Argv {
-    const int PROG_NAME = 0;
-    const int IN_FILENAME = 1;
-    const int OUT_FILENAME = 2;
-    const int INTERACTIVE_MODE_ARGC = 1;
-    const int FILE_MODE_ARGC = 3;
-}
+
+const int PROG_NAME = 0;
+const int IN_FILENAME = 1;
+const int OUT_FILENAME = 2;
+const int INTERACTIVE_MODE_ARGC = 1;
+const int FILE_MODE_ARGC = 3;
+
+} // namespace Argv
 
 int main(int argc, char *argv[]) {
     if (argc == Argv::INTERACTIVE_MODE_ARGC) {
