@@ -2,27 +2,27 @@
 
 namespace {
 
-const uint mUnknownMask = 0b00u;
-const uint mFalseMask = 0b01u;
-const uint mTrueMask = 0b10u;
-const uint mPosMask = 0b11u;
+const uint UNKNOWN_MASK = 0b00u;
+const uint FALSE_MASK = 0b01u;
+const uint TRUE_MASK = 0b10u;
+const uint POS_MASK = 0b11u;
 
 uint get_trit_mask(Trit val) {
     switch (val) {
     case Trit::False:
-        return mFalseMask;
+        return FALSE_MASK;
     case Trit::True:
-        return mTrueMask;
+        return TRUE_MASK;
     default:
-        return mUnknownMask;
+        return UNKNOWN_MASK;
     }
 }
 
 Trit get_trit_value(uint tritMask) {
     switch (tritMask) {
-    case mFalseMask:
+    case FALSE_MASK:
         return Trit::False;
-    case mTrueMask:
+    case TRUE_MASK:
         return Trit::True;
     default:
         return Trit::Unknown;
@@ -30,7 +30,7 @@ Trit get_trit_value(uint tritMask) {
 }
 
 inline uint get_position_mask(size_type pos) {
-    return mPosMask << (pos * TritSetAux::BITS_PER_TRIT);
+    return POS_MASK << (pos * TritSetAux::BITS_PER_TRIT);
 }
 inline uint shift_left(uint mask, size_type posShift) {
     return mask << (posShift * TritSetAux::BITS_PER_TRIT);
@@ -65,18 +65,16 @@ void set_value(Trit value, uint &element, size_type pos) {
 
 void set_value(Trit value, uint &element, size_type begPos, size_type endPos) {
     // initialize bit masks
-    uint posMask = shift_left(mPosMask, begPos);
+    uint posMask = get_position_mask(begPos);
     uint tritMask = shift_left(get_trit_mask(value), begPos);
     for (size_type pos = begPos; pos < endPos; ++pos) {
         // set given trit value in the pos
         element &= ~posMask;
         element |= tritMask;
-        // shift masks
+        // shift masks to the next trit position
         posMask = shift_left(posMask, 1);
         tritMask = shift_left(tritMask, 1);
     }
 }
 
 }   // namespace TritSetAux
-
-

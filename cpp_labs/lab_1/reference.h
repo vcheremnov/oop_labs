@@ -9,30 +9,17 @@
 class TritSet::Reference {
     friend class TritSet;
 public:
-    // get value of the reference
-    Trit value() const;
-    // conversion to Trit
-    operator Trit() const {
-        return value();
-    }
-    // assignment operators
-    Reference &operator= (Trit val);
-    Reference &operator= (const Reference &ref) {
-        return *this = ref.value();
-    }
-    Reference &operator|= (Trit val) {
-        return *this = (*this | val);
-    }
-    Reference &operator&= (Trit val) {
-        return *this = (*this & val);
-    }
+    operator Trit() const;
+    Reference &operator= (Trit value);
+    Reference &operator= (const Reference &ref);
+    Reference &operator|= (Trit value);
+    Reference &operator&= (Trit value);
 private:
     Reference(TritSet &set, size_type tritIndex);
+    Trit _value() const;                            // value of the reference
     // internal data
-    TritSet &mSet;                              // reference to the associated tritset
-    uint *mElemPtr;                             // pointer to the element storing given trit
-    size_type mTritIndex;                       // trit's index in the tritset
-    size_type mPos;                             // trit's position within the tritset's storage element
+    TritSet &_set;                                  // reference to the associated tritset
+    size_type _tritIndex;                           // trit's index in the tritset
 };
 
 #endif // REFERENCE_H

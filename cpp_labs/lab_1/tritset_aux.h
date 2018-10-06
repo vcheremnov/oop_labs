@@ -20,7 +20,7 @@ Trit get_value(const uint &element, size_type pos);
 void set_value(Trit value, uint &element, size_type pos);
 void set_value(Trit value, uint &element, size_type begPos, size_type endPos);
 
-inline size_type get_storage_length(size_type tritsNum) {
+inline size_type get_storage_size(size_type tritsNum) {
     return tritsNum / TRITS_PER_ELEM + (tritsNum % TRITS_PER_ELEM != 0);
 }
 

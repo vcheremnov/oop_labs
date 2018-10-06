@@ -1,35 +1,35 @@
 #include "reference.h"
-#include "tritset_aux.h"
 
-// get value of the reference
+using Reference = TritSet::Reference;
 
-Trit Reference::value() const {
-    return (mElemPtr == nullptr) ?
-                Trit::Unknown : TritSetAux::get_value(*mElemPtr, mPos);
+Reference::operator Trit() const {
+    return _value();
 }
 
-// constructor
+// assignment operators
 
-Reference::Reference(TritSet &set, size_type tritIndex):
-    mSet(set), mTritIndex(tritIndex) {
-
-    mPos = TritSetAux::get_trit_position(tritIndex);
-    mElemPtr = mSet.get_elem_address(tritIndex);
-}
-
-// assignment
-
-Reference &Reference::operator= (Trit val) {
-    if (mElemPtr == nullptr) {
-        if (val == Trit::Unknown) {
-            // nothing to set
-            return *this;
-        }
-        // resize associated tritset to store not-unknown value
-        mSet.resize(mTritIndex + 1);
-        mElemPtr = mSet.get_elem_address(mTritIndex);
-    }
-    TritSetAux::set_value(val, *mElemPtr, mPos);
-
+Reference &Reference::operator= (Trit value) {
+    _set._set_value_at(_tritIndex, value);
     return *this;
+}
+
+Reference &Reference::operator= (const Reference &ref) {
+    return *this = ref._value();
+}
+
+Reference &Reference::operator|= (Trit value) {
+    return *this = (*this | value);
+}
+
+Reference &Reference::operator&= (Trit value) {
+    return *this = (*this & value);
+}
+
+// private methods
+
+Reference::Reference(TritSet &set, TritSet::size_type tritIndex):
+    _set(set), _tritIndex(tritIndex) {}
+
+Trit Reference::_value() const {
+    return _set._get_value_at(_tritIndex);
 }
