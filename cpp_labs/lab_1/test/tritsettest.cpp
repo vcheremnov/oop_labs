@@ -3,9 +3,6 @@
 #include <sstream>
 #include "../tritset.h"
 #include "../tritset_aux.h"
-#include "../reference.h"
-#include "../trits.h"
-#include "../tritset_aux.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -68,11 +65,7 @@ TEST(TritOperationsTest, TritOr) {
 // TritSetAux
 
 TEST(TritSetAux, TritSetAux_general) {
-    // implementation dependent test
-    // assumes that trits are stored in TritSet::uint elements, each trit is 2-bit long
-    const uint BITS_PER_TRIT = 2u;
-    const uint TRITS_PER_INT = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
-    const size_type maxPos = TRITS_PER_INT;
+    const size_type maxPos = TritSetAux::TRITS_PER_ELEM;
 
     uint element = 0;
     // set different values and check them by get_value(..)
@@ -88,31 +81,35 @@ TEST(TritSetAux, TritSetAux_general) {
     TritSetAux::set_value(Trit::True, element, pos3);
     ASSERT_EQ(TritSetAux::get_value(element, pos3), Trit::True);
 
+    // rewrite trit value at the same position & check
+    TritSetAux::set_value(Trit::False, element, pos3);
+    ASSERT_EQ(TritSetAux::get_value(element, pos3), Trit::False);
+
     // set several values at once & check
-    size_type begPos = maxPos / 3, endPos = maxPos;
-    TritSetAux::set_value(Trit::True, element, begPos, endPos);
-    for (size_type pos = begPos; pos < endPos; ++pos ) {
+    size_type begPos = maxPos / 3;
+    TritSetAux::set_value(Trit::True, element, begPos, maxPos);
+    for (size_type pos = begPos; pos < maxPos; ++pos) {
         ASSERT_EQ(TritSetAux::get_value(element, pos), Trit::True);
     }
 }
 
 // TritSet::Reference
 
-//TEST(TritReferenceSet, Reference_value) {
-//    size_type size = 50;
-//    TritSet set(size);
-//    // get reference to the non-existing trit
-//    size *= 2;
-//    auto ref = set[size - 1];
-//    ASSERT_EQ(ref.value(), Trit::Unknown);
-//    // assign Trit::True to the reference
-//    ref = Trit::True;
-//    ASSERT_EQ(set.capacity(), size);
-//    ASSERT_EQ(ref.value(), Trit::True);
-//    auto anotherRef = set[size - 1];
-//    anotherRef = Trit::False;
-//    ASSERT_EQ(ref.value(), Trit::False);
-//}
+TEST(TritReferenceSet, Reference_value) {
+    size_type size = 50;
+    TritSet set(size);
+    // get reference to the non-existing trit
+    size *= 2;
+    auto ref = set[size - 1];
+    ASSERT_EQ(ref, Trit::Unknown);
+    // assign Trit::True to the reference
+    ref = Trit::True;
+    ASSERT_EQ(set.capacity(), size);
+    ASSERT_EQ(ref, Trit::True);
+    auto anotherRef = set[size - 1];
+    anotherRef = Trit::False;
+    ASSERT_EQ(ref, Trit::False);
+}
 
 TEST(TritReferenceSet, Reference_AND_assignment) {
     size_type size = 50;
@@ -167,21 +164,25 @@ TEST(TritSetTest, TritSet_subscript) {
     size_type size = 1000;
     TritSet set(size);
     ASSERT_EQ(set.capacity(), size);
+
     // doesn't change the capacity
     size_type bigIndex = 10000000u;
     size_type capacity = set.capacity();
     set[bigIndex] = Trit::Unknown;
     ASSERT_EQ(capacity, set.capacity());
     ASSERT_EQ(set[bigIndex], Trit::Unknown);
+
     // false, but no exception or memory allocation
     bigIndex *= 2;
     if (set[bigIndex] == Trit::True) {}
     ASSERT_EQ(set.capacity(), capacity);
+
     // memory allocation
     bigIndex = size * 10;
     set[bigIndex] = Trit::False;
     ASSERT_EQ(set[bigIndex], Trit::False);
     ASSERT_LT(capacity, set.capacity());
+
     // no memory operations
     capacity = set.capacity();
     set[bigIndex] = Trit::Unknown;
@@ -195,13 +196,16 @@ TEST(TritSetTest, TritSet_resize) {
     // make a set of size == 10
     size_type size = 10;
     TritSet set(size);
+
     // resize & check the capacity
     size = 100;
     set.resize(size);
     ASSERT_EQ(set.capacity(), size);
+
     // check whether the added trits are filled with "Unknown" values
     std::string str_repr(size, '?');
     ASSERT_EQ(get_string_repr(set), str_repr);
+
     // set some values
     for (size_type ix = 0; ix + 1 < size; ix += 2) {
         set[ix] = Trit::False;
@@ -219,32 +223,134 @@ TEST(TritSetTest, TritSet_resize) {
     str_repr.resize(size * 2, '?');
     // check whether the first half of values is saved, and another is not
     ASSERT_EQ(get_string_repr(set), str_repr);
+
     // check the cleaning within the last storage element after resizing
-//    TritSet set1(TritSetAux::TRITS_PER_ELEM + 1);
-//    str_repr = set1.get_string_repr();
-//    for (size_type ix = 0; ix < set1.capacity(); ++ix) {
-//        set1[ix] = Trit::True;
-//        str_repr[ix] = '1';
-//    }
-//    set1.resize(TritSetAux::TRITS_PER_ELEM);
-//    str_repr.resize(set1.capacity());
-//    ASSERT_EQ(set1.get_string_repr(), str_repr);
+    set.resize(TritSetAux::TRITS_PER_ELEM);
+    str_repr = get_string_repr(set);
+    for (size_type ix = 0; ix < set.capacity(); ++ix) {
+        set[ix] = Trit::True;
+        str_repr[ix] = '1';
+    }
+    set.resize(TritSetAux::TRITS_PER_ELEM / 2);
+    str_repr.resize(set.capacity());
+    set.resize(TritSetAux::TRITS_PER_ELEM);
+    str_repr.resize(set.capacity(), '?');
+    ASSERT_EQ(get_string_repr(set), str_repr);
+}
+
+TEST(TritSetTest, TritSet_length) {
+    size_type size = 100;
+    TritSet set(size);
+
+    // check if initial length equals 0
+    ASSERT_EQ(set.length(), 0u);
+
+    // change logical length
+    size_type pos1 = size / 2;
+    set[pos1] = Trit::True;
+    ASSERT_EQ(set.length(), pos1 + 1);
+
+    size_type pos2 = 3 * size / 4;
+    set[pos2] = Trit::False;
+    ASSERT_EQ(set.length(), pos2 + 1);
+
+    // following assignments doesn't change the logical length
+    size_type pos3 = pos1 / 2;
+    set[pos3] = Trit::False;
+    ASSERT_EQ(set.length(), pos2 + 1);
+
+    set[pos2 + 1] = Trit::Unknown;
+    ASSERT_EQ(set.length(), pos2 + 1);
+
+    // reset the last non-unknown value => length changes
+    set[pos2] = Trit::Unknown;
+    ASSERT_EQ(set.length(), pos1 + 1);
+
+    // resize to the size less than current length (and more than pos3 + 1)
+    set.resize((pos1 + pos3) / 2);
+    ASSERT_EQ(set.length(), pos3 + 1);
 }
 
 TEST(TritSetTest, TritSet_shrink) {
     // make a set of size == 1000
     size_type size = 1000;
     TritSet set(size);
+
+    // change the logical length
     set[size / 2] = Trit::True;
-    // shrink the set
+
+    // shrink the set to the logical length
     set.shrink();
     ASSERT_EQ(set.capacity(), size / 2 + 1);
     ASSERT_EQ(set.length(), size / 2 + 1);
+
     // shrink to the empty size
     set[size / 2] = Trit::Unknown;
     set.shrink();
     ASSERT_EQ(set.capacity(), 0u);
     ASSERT_EQ(set.length(), 0u);
+}
+
+TEST(TritSetTest, TritSet_cardinality) {
+    size_type size = 100;
+    TritSet set(size);
+
+    // check initial cardinalities
+    ASSERT_EQ(set.cardinality(Trit::True), 0u);
+    ASSERT_EQ(set.cardinality(Trit::False), 0u);
+    ASSERT_EQ(set.cardinality(Trit::Unknown), 0u);
+    auto cardMap = set.cardinality();
+    ASSERT_EQ(cardMap[Trit::True], 0u);
+    ASSERT_EQ(cardMap[Trit::False], 0u);
+    ASSERT_EQ(cardMap[Trit::Unknown], 0u);
+
+    // fill the set with values & check cardinalities
+    size_type cnt = 0;
+    for (size_type ix = 0; ix + 2 < set.capacity() / 2; ix += 3) {
+        set[ix] = Trit::True;
+        set[ix + 1] = Trit::Unknown;
+        set[ix + 2] = Trit::False;
+        ++cnt;
+    }
+    ASSERT_EQ(set.cardinality(Trit::True), cnt);
+    ASSERT_EQ(set.cardinality(Trit::False), cnt);
+    ASSERT_EQ(set.cardinality(Trit::Unknown), cnt);
+    cardMap = set.cardinality();
+    ASSERT_EQ(cardMap[Trit::True], cnt);
+    ASSERT_EQ(cardMap[Trit::False], cnt);
+    ASSERT_EQ(cardMap[Trit::Unknown], cnt);
+
+    // change logical length & check cardinalities
+    set = TritSet(size);
+    size_type trueIndex = size / 2;
+    set[trueIndex] = Trit::True;
+    ASSERT_EQ(set.cardinality(Trit::True), 1u);
+    ASSERT_EQ(set.cardinality(Trit::Unknown), trueIndex);
+
+    set[trueIndex] = Trit::Unknown;
+    ASSERT_EQ(set.cardinality(Trit::True), 0u);
+    ASSERT_EQ(set.cardinality(Trit::Unknown), 0u);
+}
+
+TEST(TritSetTest, TritSet_trim) {
+    size_type size = 100;
+    TritSet set(size);
+    std::string str_repr(size, '?');
+
+    // fill the tritset
+    for (size_type ix = 0; ix + 1 < set.capacity(); ix += 2) {
+        set[ix] = Trit::True;
+        set[ix + 1] = Trit::False;
+        str_repr[ix] = '1';
+        str_repr[ix + 1] = '0';
+    }
+
+    // trim & check values and logical length
+    size_type lastIndex = size / 2;
+    set.trim(lastIndex);
+    std::fill(str_repr.begin() + lastIndex, str_repr.end(), '?');
+    ASSERT_EQ(set.length(), lastIndex);
+    ASSERT_EQ(get_string_repr(set), str_repr);
 }
 
 TEST(TritSetTest, TritSet_const_subscript) {
@@ -255,38 +361,44 @@ TEST(TritSetTest, TritSet_const_subscript) {
         set[ix + 1] = Trit::Unknown;
         set[ix + 2] = Trit::True;
     }
+
     // make const TritSet
     const TritSet constSet(set);
+
     // check the identity of set & constSet using the const subcript operator
     for (size_type ix = 0; ix < size; ++ix) {
         ASSERT_EQ(set[ix], constSet[ix]);
     }
 }
 
-//TEST(TritSetTest, TritSet_get_str_repr) {
-//    size_type size = 10;
-//    TritSet set(size);
-//    std::string str_repr(10, '?');
-//    // check initial string representation
-//    ASSERT_EQ(get_string_repr(set), str_repr);
-//    // change trits && check string representation
-//    set[1] = set[3] = set[5] = set[7] = Trit::False;
-//    set[2] = set[4] = set[6] = set[8] = Trit::True;
-//    str_repr = "?01010101?";
-//    ASSERT_EQ(get_string_repr(set), str_repr);
-//    // resize & check the preservation of the previous characters
-//    size *= 2;
-//    set.resize(size);
-//    str_repr.resize(size, '?');
-//    ASSERT_EQ(get_string_repr(set), str_repr);
-//    size /= 4;
-//    set.resize(size);
-//    str_repr.resize(size);
-//    ASSERT_EQ(get_string_repr(set), str_repr);
-//    // string representation of the empty set
-//    set.resize(0);
-//    ASSERT_EQ(get_string_repr(set), "");
-//}
+TEST(Test, TritSet_get_str_repr) {
+    size_type size = 10;
+    TritSet set(size);
+    std::string str_repr(10, '?');
+
+    // check initial string representation
+    ASSERT_EQ(get_string_repr(set), str_repr);
+
+    // change trits && check string representation
+    set[1] = set[3] = set[5] = set[7] = Trit::False;
+    set[2] = set[4] = set[6] = set[8] = Trit::True;
+    str_repr = "?01010101?";
+    ASSERT_EQ(get_string_repr(set), str_repr);
+
+    // resize & check the preservation of the previous characters
+    size *= 2;
+    set.resize(size);
+    str_repr.resize(size, '?');
+    ASSERT_EQ(get_string_repr(set), str_repr);
+    size /= 4;
+    set.resize(size);
+    str_repr.resize(size);
+    ASSERT_EQ(get_string_repr(set), str_repr);
+
+    // string representation of the empty set
+    set.resize(0);
+    ASSERT_EQ(get_string_repr(set), "");
+}
 
 // TritSet public operators
 
@@ -294,8 +406,10 @@ TEST(TritSetTest, TritSet_NOT) {
     size_type size = 50;
     TritSet set(size);
     std::string str_repr = get_string_repr(set);
+
     // invert and check string representations
     ASSERT_EQ(get_string_repr(~set), str_repr);
+
     // set values & invert
     for (size_type ix = 0; ix + 1 < size; ix += 3) {
         set[ix] = Trit::False;
@@ -310,9 +424,11 @@ TEST(TritSetTest, TritSet_NOT) {
 TEST(TritSetTest, TritSet_AND) {
     size_type size1 = 50, size2 = 100;
     TritSet set1(size1), set2(size2);
+
     // check capacity of the result
     ASSERT_EQ((set1 & set2).capacity(), std::max(size1, size2));
     ASSERT_EQ((set2 & set1).capacity(), std::max(size1, size2));
+
     // check the whole truth table
     set1[0] = set1[1] = set1[2] = Trit::False;
     set1[3] = set1[4] = set1[5] = Trit::Unknown;
@@ -326,6 +442,7 @@ TEST(TritSetTest, TritSet_AND) {
     str_repr.resize(std::max(size1, size2), '?');
     ASSERT_EQ(get_string_repr(set1 & set2), str_repr);
     ASSERT_EQ(get_string_repr(set2 & set1), str_repr);
+
     // test combined assignment
     set1 &= set2;
     ASSERT_EQ(get_string_repr(set1), str_repr);
@@ -334,9 +451,11 @@ TEST(TritSetTest, TritSet_AND) {
 TEST(TritSetTest, TritSet_OR) {
     size_type size1 = 50, size2 = 100;
     TritSet set1(size1), set2(size2);
+
     // check capacity of the result
     ASSERT_EQ((set1 & set2).capacity(), std::max(size1, size2));
     ASSERT_EQ((set2 & set1).capacity(), std::max(size1, size2));
+
     // check the whole truth table
     set1[0] = set1[1] = set1[2] = Trit::False;
     set1[3] = set1[4] = set1[5] = Trit::Unknown;
@@ -350,6 +469,7 @@ TEST(TritSetTest, TritSet_OR) {
     str_repr.resize(std::max(size1, size2), '?');
     ASSERT_EQ(get_string_repr(set1 | set2), str_repr);
     ASSERT_EQ(get_string_repr(set2 | set1), str_repr);
+
     // test combined assignment
     set1 |= set2;
     ASSERT_EQ(get_string_repr(set1), str_repr);

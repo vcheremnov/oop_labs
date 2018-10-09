@@ -2,7 +2,6 @@
 #include <sstream>
 #include <algorithm>
 #include "tritset.h"
-#include "reference.h"
 #include "tritset_aux.h"
 
 // constructors
@@ -61,19 +60,21 @@ void TritSet::resize(size_type size) {
     }
     // refresh the logical length
     if (size < _length) {
-        _length = _find_length();
+        _length = _find_length(_capacity);
     }
 }
 
 void TritSet::trim(size_type lastIndex){
     if (lastIndex < _capacity) {
         // set all storage elements after lastIndex to 0 (since 00 <=> Trit::Unknown)
-        size_type elemIndex = TritSetAux::get_element_index(lastIndex) + 1;
-        std::fill(_storage.begin() + elemIndex, _storage.end(), 0u);
+        size_type elemIndex = TritSetAux::get_element_index(lastIndex);
+        std::fill(_storage.begin() + elemIndex + 1, _storage.end(), 0u);
         // reset residual trits within the element containing lastIndex trit
         size_type begPos = TritSetAux::get_trit_position(lastIndex),
                   endPos = TritSetAux::TRITS_PER_ELEM;
         TritSetAux::set_value(Trit::Unknown, _storage[elemIndex], begPos, endPos);
+        // change the logical length
+        _length = _find_length(lastIndex);
     }
 }
 
@@ -165,7 +166,7 @@ void TritSet::_set_value_at(size_type tritIndex, Trit value) {
     TritSetAux::set_value(value, _storage[elemIndex], tritPos);
     // refresh logical length & trit counters
     _update_counters(value, oldValue);
-    _update_length(tritIndex, value);
+    _update_length(value, tritIndex);
 }
 
 void TritSet::_update_counters(Trit setValue, Trit oldValue) {
@@ -184,26 +185,20 @@ void TritSet::_update_counters(Trit setValue, Trit oldValue) {
     }
 }
 
-void TritSet::_update_length(size_type setIndex, Trit setValue) {
+void TritSet::_update_length(Trit setValue, size_type setIndex) {
     if (setIndex + 1 > _length && setValue != Trit::Unknown) {
         _length = setIndex + 1;
     }
     else if (setIndex + 1 == _length && setValue == Trit::Unknown) {
         // the last non-unknown trit was reset; find the new length
-        _length = _find_length();
+        _length = _find_length(_length);
     }
 }
 
-size_type TritSet::_find_length() const {
-    /*
-     * Called in two cases:
-     * 1) When tritset's capacity after resize() is less than the previous logical length
-     * 2) When the trit at position [_length - 1] was set to Unknown
-     * In the first case we can start the search from the current capacity,
-     * and in the second case - from the previous length,
-     * since trits standing after the previous length are known to be Unknown
-    */
-    size_type length = std::min(_length, _capacity);
+size_type TritSet::_find_length(size_type evalLength) const {
+    // search starting from the estimated value of the length (evalLength)
+    // actual length is known to be <= evalLength
+    size_type length = evalLength;
     for (; length > 0; --length) {
         if (_get_value_at(length - 1) != Trit::Unknown) {
             break;

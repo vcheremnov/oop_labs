@@ -39,8 +39,8 @@ public:
 private:
     // private methods
     void _update_counters(Trit setValue, Trit oldValue);            // update trit counters after change of a trit value
-    void _update_length(size_type setIndex, Trit setValue);         // update logical length after change of a trit value
-    size_type _find_length() const;                                 // find current logical length
+    void _update_length(Trit setValue, size_type setIndex);         // update logical length after change of a trit value
+    size_type _find_length(size_type evalLength) const;             // find current logical length
     Trit _get_value_at(size_type tritIndex) const;                  // get trit value directly from a storage element
     void _set_value_at(size_type tritIndex, Trit value);            // set trit value directly in a storage element
     // internal data
@@ -48,6 +48,22 @@ private:
     size_type _capacity = 0;                                        // actual size of the tritset
     std::vector<uint> _storage;                                     // storage for trits
     size_type _falseCount = 0, _trueCount = 0;                      // number of false/true trits
+};
+
+class TritSet::Reference {
+    friend class TritSet;
+public:
+    operator Trit() const;
+    Reference &operator= (Trit value);
+    Reference &operator= (const Reference &ref);
+    Reference &operator|= (Trit value);
+    Reference &operator&= (Trit value);
+private:
+    Reference(TritSet &set, size_type tritIndex);
+    Trit _value() const;                            // value of the reference
+    // internal data
+    TritSet &_set;                                  // reference to the associated tritset
+    size_type _tritIndex;                           // trit's index in the tritset
 };
 
 #endif // TRITSET_H

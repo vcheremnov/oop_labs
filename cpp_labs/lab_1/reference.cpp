@@ -1,4 +1,4 @@
-#include "reference.h"
+#include "tritset.h"
 
 using Reference = TritSet::Reference;
 
