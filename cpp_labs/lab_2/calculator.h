@@ -17,26 +17,30 @@ public:
         friend class Calculator;
     public:
         // stack operations
-        double pop();
-        double push();
-        double size();
-        double empty();
+        void pop();
+        double &top();
+        void push(double val);
+        std::stack<double>::size_type size();
+        bool empty();
         // variables operations
+        bool is_variable(const std::string &varName);
         void set_variable(const std::string &varName, double varValue);
         double get_variable(const std::string &varName);
         // stream operations
-        void print_value();
+        void print_top();
     private:
         Context(Calculator &calc): _calcRef(calc) {}
+        bool _is_valid_varname(const std::string &varName);
         Calculator &_calcRef;
     };
 private:
+    using TokenList = std::vector<std::string>;
     std::istream &_inputStream;
     std::ostream &_outputStream;
     std::stack<double> _stack;
     std::unordered_map<std::string, double> _variables;
     // private methods
-    bool _parse_line(std::string &cmdName, ArgList &args);
+    TokenList _parse_line();
 };
 
 

@@ -1,35 +1,70 @@
-#include "commandcreator.h"
 #include <exception>
+#include <sstream>
+#include "command.h"
+#include "commandfactory.h"
+#include "commandcreator.h"
 
-// command factory
-
-std::shared_ptr<Command> CommandFactory::get_command(const std::string &cmdName) {
-    if (_registry.find(cmdName) == _registry.end()) {
-        throw std::runtime_error("Unknown command " + cmdName);
-    }
-    return _registry[cmdName]->create_command();
-}
-
-void CommandFactory::register_command(const std::string &cmdName, CommandCreator *creator) {
-    if (creator == nullptr) {
-        throw std::runtime_error("Invalid command creator!");
-    }
-    if (_registry.find(cmdName) == _registry.end()) {
-        _registry[cmdName] = creator;
-    }
-}
-
-// command creators
-
-namespace { // instances of creators
-
-CommentCreator commentCreator;
-
-} // anonymous namespace
+// concrete command creators
 
 // # command
 
-CommentCreator::CommentCreator() {
-    auto cmd = create_command();
-    CommandFactory::instance().register_command(cmd->get_name(), this);
+class CommentCommand: public Command {
+public:
+    void execute(const Calculator::ArgList &args, Calculator::Context &context) {}
+};
+
+class CommentCreator: public CommandCreator {
+public:
+    CommentCreator() {
+        CommandFactory::instance().register_command(command_name(), *this);
+    }
+    std::string command_name() {
+        return "#";
+    }
+    void command_info(std::ostream &outputStream) {
+        outputStream << "# <comment>" << std::endl;
+    }
+    std::shared_ptr<Command> create_command() {
+        return std::make_shared<CommentCommand>();
+    }
+};
+
+// PUSH command
+
+class PushCommand: public Command {
+public:
+    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+};
+
+void PushCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+    if (args.size() != 1) {
+        std::ostringstream errMsg;
+        errMsg << "PUSH requires exactly 1 argument; " << args.size() << " has been passed";
+        throw CommandError::ArgumentMismatch(errMsg.str());
+    }
+    double val = Command::_convert_to_value(args.front(), context);
+    context.push(val);
 }
+
+class PushCreator: public CommandCreator {
+public:
+    PushCreator() {
+        CommandFactory::instance().register_command(command_name(), *this);
+    }
+    std::string command_name() {
+        return "PUSH";
+    }
+    void command_info(std::ostream &outputStream) {
+        outputStream << "PUSH <value>" << std::endl;
+    }
+    std::shared_ptr<Command> create_command() {
+        return std::make_shared<PushCommand>();
+    }
+};
+
+namespace { // creators registration
+
+CommentCreator commentCreator;
+PushCreator pushCreator;
+
+} // anonymous namespace
