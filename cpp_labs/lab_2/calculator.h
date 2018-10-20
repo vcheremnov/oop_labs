@@ -10,27 +10,28 @@ class Calculator {
 public:
     // type names
     using ArgList = std::vector<std::string>;
+    // public methods
     Calculator(std::istream &inputStream, std::ostream &outputStream);
+    static bool is_valid_varname(const std::string &varName);
     void calculate();
-    // Execution Context internal class
+    // Execution Context
     class Context {
         friend class Calculator;
     public:
         // stack operations
-        void pop();
-        double &top();
-        void push(double val);
-        std::stack<double>::size_type size();
-        bool empty();
+        void stack_pop();
+        double &stack_top();
+        void stack_push(double val);
+        std::stack<double>::size_type stack_size();
+        bool stack_empty();
         // variables operations
         bool is_variable(const std::string &varName);
         void set_variable(const std::string &varName, double varValue);
         double get_variable(const std::string &varName);
         // stream operations
-        void print_top();
+        void print_val(double val);
     private:
         Context(Calculator &calc): _calcRef(calc) {}
-        bool _is_valid_varname(const std::string &varName);
         Calculator &_calcRef;
     };
 private:
