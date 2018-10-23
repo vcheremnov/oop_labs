@@ -5,9 +5,20 @@
 #include <iomanip>
 #include "command.h"
 
+void Command::_arg_number_check(ArgNum requiredNum, ArgNum actualNum) {
+    // throws an exception in case of argument number mismatch
+    if (requiredNum != actualNum) {
+        std::stringstream msgStream;
+        msgStream << "Expected " << requiredNum << (requiredNum == 1 ? " argument" : " arguments")
+                  << ", but received " << actualNum;
+        throw CommandError::ArgumentMismatch(msgStream.str());
+    }
+}
+
 double Command::_convert_to_value(const std::string &arg, Calculator::Context &context) {
-    if (context.is_variable(arg)) {
-        return context.get_variable(arg);
+    // try to interpret as a variable
+    if (context.is_valid_varname(arg)) {
+        return context.get_variable_value(arg);
     }
     // try to convert to double value
     double val = 0.0;

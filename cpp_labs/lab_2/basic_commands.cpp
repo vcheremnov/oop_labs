@@ -27,11 +27,7 @@ public:
 };
 
 void PrintCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "DEFINE doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_empty()) {
         throw CommandError::StackError("The stack is empty");
     }
@@ -47,14 +43,9 @@ public:
 };
 
 void DefineCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 2) {
-        std::stringstream msgStream;
-        msgStream << "DEFINE requires 2 arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
-    // remake!
+    _arg_number_check(2, args.size());
     double varValue = Command::_convert_to_value(args.back(), context);
-    context.set_variable(args.front(), varValue);
+    context.set_variable_value(args.front(), varValue);
 }
 
 // PRINTVAR command - print variable's value
@@ -65,12 +56,8 @@ public:
 };
 
 void PrintVarCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 1) {
-        std::stringstream msgStream;
-        msgStream << "PRINTVAR requires 1 argument; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
-    double val = context.get_variable(args.front());
+    _arg_number_check(1, args.size());
+    double val = context.get_variable_value(args.front());
     context.print_val(val);
 }
 
@@ -82,11 +69,7 @@ public:
 };
 
 void PushCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 1) {
-        std::stringstream msgStream;
-        msgStream << "PUSH requires 1 argument; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(1, args.size());
     double val = Command::_convert_to_value(args.front(), context);
     context.stack_push(val);
 }
@@ -99,11 +82,7 @@ public:
 };
 
 void PopCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "POP doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_empty()) {
         throw CommandError::StackError("The stack is empty");
     }
@@ -118,16 +97,13 @@ public:
 };
 
 void SqrtCommand::execute(const ArgList &args, Context &context) {
-    std::stringstream msgStream;
-    if (args.size() != 0) {
-        msgStream << "SQRT doesn't require arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_empty()) {
         throw CommandError::StackError("The stack is empty");
     }
     double topVal = context.stack_top();
     if (topVal < 0.0) {
+        std::stringstream msgStream;
         msgStream << "A negative number " << topVal << " has been passed to SQRT";
         throw CommandError::FunctionDomainError(msgStream.str());
     }
@@ -143,11 +119,7 @@ public:
 };
 
 void PlusCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "+ doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_size() < 2) {
         throw CommandError::StackError("Too little elements in the stack");
     }
@@ -164,11 +136,7 @@ public:
 };
 
 void MinusCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "- doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_size() < 2) {
         throw CommandError::StackError("Too little elements in the stack");
     }
@@ -185,11 +153,7 @@ public:
 };
 
 void MultCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "* doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_size() < 2) {
         throw CommandError::StackError("Too little elements in the stack");
     }
@@ -206,11 +170,7 @@ public:
 };
 
 void DivCommand::execute(const ArgList &args, Context &context) {
-    if (args.size() != 0) {
-        std::stringstream msgStream;
-        msgStream << "/ doesn't require any arguments; " << args.size() << " has been passed";
-        throw CommandError::ArgumentMismatch(msgStream.str());
-    }
+    _arg_number_check(0, args.size());
     if (context.stack_size() < 2) {
         throw CommandError::StackError("Too little elements in the stack");
     }
@@ -222,18 +182,64 @@ void DivCommand::execute(const ArgList &args, Context &context) {
     context.stack_top() /= rightArg;
 }
 
+// command info command
+
+class CmdInfoCommand: public Command {
+public:
+    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+};
+
+void CmdInfoCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+    _arg_number_check(1, args.size());
+    std::string cmdInfo = CommandFactory::instance().command_info(args.front());
+    context.print_val(cmdInfo);
+}
+
+// command list command
+
+class CmdListCommand: public Command {
+public:
+    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+};
+
+void CmdListCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+    _arg_number_check(0, args.size());
+    auto cmdList = CommandFactory::instance().get_command_list();
+    for (const auto &cmdName: cmdList) {
+        context.print_val(cmdName);
+    }
+}
+
+// variable list command
+
+class VarListCommand: public Command {
+public:
+    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+};
+
+void VarListCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+    _arg_number_check(0, args.size());
+    auto varList = context.get_variable_list();
+    for (const auto &varName: varList) {
+        context.print_val(varName);
+    }
+}
+
 namespace { // creators registration
 
-CreatorOf<CommentCommand>   commentCreator("#", "# <comment>");
-CreatorOf<DefineCommand>    defineCreator("DEFINE", "DEFINE <variable name> <variable value>");
-CreatorOf<PrintVarCommand>  printVarCreator("PRINTVAR", "PRINTVAR <variable name>");
-CreatorOf<PrintCommand>     printCreator("PRINT", "PRINT <no args>");
-CreatorOf<PushCommand>      pushCreator("PUSH", "PUSH <value>");
-CreatorOf<PopCommand>       popCreator("POP", "POP <no args>");
-CreatorOf<SqrtCommand>      sqrtCreator("SQRT", "SQRT <no args>");
-CreatorOf<PlusCommand>      plusCreator("+", "+ <no args>");
-CreatorOf<MinusCommand>     minusCreator("-", "- <no args>");
-CreatorOf<MultCommand>      multCreator("*", "* <no args>");
-CreatorOf<DivCommand>       divCreator("/", "/ <no args>");
+CreatorOf<CommentCommand>   commentCreator  ("#",           "# <comment>");
+CreatorOf<DefineCommand>    defineCreator   ("DEFINE",      "DEFINE <variable name> <variable value>");
+CreatorOf<PrintVarCommand>  printVarCreator ("PRINTVAR",    "PRINTVAR <variable name>");
+CreatorOf<PrintCommand>     printCreator    ("PRINT",       "PRINT <no args>");
+CreatorOf<PushCommand>      pushCreator     ("PUSH",        "PUSH <value>");
+CreatorOf<PopCommand>       popCreator      ("POP",         "POP <no args>");
+CreatorOf<SqrtCommand>      sqrtCreator     ("SQRT",        "SQRT <no args>");
+CreatorOf<PlusCommand>      plusCreator     ("+",           "+ <no args>");
+CreatorOf<MinusCommand>     minusCreator    ("-",           "- <no args>");
+CreatorOf<MultCommand>      multCreator     ("*",           "* <no args>");
+CreatorOf<DivCommand>       divCreator      ("/",           "/ <no args>");
+CreatorOf<CmdInfoCommand>   helpCreator     ("CMDINFO",     "CMDINFO <command name>");
+CreatorOf<CmdListCommand>   cmdListCreator  ("CMDLIST",     "CMDLIST <no args>");
+CreatorOf<VarListCommand>   varListCreator  ("VARLIST",     "VARLIST <no args>");
 
 } // anonymous namespace

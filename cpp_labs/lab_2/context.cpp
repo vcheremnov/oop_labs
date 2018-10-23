@@ -8,6 +8,14 @@ namespace {
 
 using Context = Calculator::Context;
 
+bool _isdigit(char ch) {
+    return std::isdigit(static_cast<unsigned char>(ch));
+}
+
+bool _isalnum(char ch) {
+    return std::isalnum(static_cast<unsigned char>(ch));
+}
+
 } // anonymous namespace
 
 // stack operations
@@ -34,11 +42,29 @@ bool Context::stack_empty() {
 
 // variables operations
 
+Calculator::VarList Context::get_variable_list() {
+    VarList varList;
+    for (const auto &mapPair: _calcRef._variables) {
+        varList.push_back(mapPair.first);
+    }
+    return varList;
+}
+
 bool Context::is_variable(const std::string &varName) {
     return _calcRef._variables.find(varName) != _calcRef._variables.end();
 }
 
-void Context::set_variable(const std::string &varName, double varValue) {
+bool Context::is_valid_varname(const std::string &varName) {
+    if (varName.empty()) {
+        return false;
+    }
+    if (_isdigit(varName.front())) {
+        return false;
+    }
+    return std::find_if_not(varName.cbegin(), varName.cend(), _isalnum) == varName.cend();
+}
+
+void Context::set_variable_value(const std::string &varName, double varValue) {
     if (!is_valid_varname(varName)) {
         std::stringstream msgStream;
         msgStream << "The variable name " << std::quoted(varName) << " is invalid";
@@ -47,7 +73,7 @@ void Context::set_variable(const std::string &varName, double varValue) {
     _calcRef._variables[varName] = varValue;
 }
 
-double Context::get_variable(const std::string &varName) {
+double Context::get_variable_value(const std::string &varName) {
     double val = 0.0;
     try {
         val = _calcRef._variables.at(varName);
@@ -58,10 +84,4 @@ double Context::get_variable(const std::string &varName) {
         throw CommandError::MissingVariable(msgStream.str());
     }
     return val;
-}
-
-// stream operations
-
-void Context::print_val(double val) {
-    _calcRef._outputStream << val << std::endl;
 }
