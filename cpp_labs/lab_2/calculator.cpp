@@ -7,19 +7,15 @@
 
 // public methods
 
-Calculator::Calculator(std::istream &inputStream, std::ostream &outputStream):
-    _inputStream(inputStream), _outputStream(outputStream) {}
-
 void Calculator::calculate() {
-    Context context(*this);
     ArgList argList;
     std::string cmdName;
     std::shared_ptr<Command> cmd;
 
-    for (unsigned long lineNo = 1; !_inputStream.eof(); ++lineNo) {
+    for (std::size_t lineNo = 1; !_inputStream.eof(); ++lineNo) {
         if (_parse_line(cmdName, argList)) try {
             cmd = CommandFactory::instance().get_command(cmdName);
-            cmd->execute(argList, context);
+            cmd->execute(argList, _context);
         }
         catch (const CommandError::Error &ex) {
             std::cerr << "Error at line " << lineNo << ", command "

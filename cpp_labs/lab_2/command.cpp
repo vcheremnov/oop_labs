@@ -15,7 +15,7 @@ void Command::_arg_number_check(ArgNum requiredNum, ArgNum actualNum) {
     }
 }
 
-double Command::_convert_to_value(const std::string &arg, Calculator::Context &context) {
+double Command::_convert_to_value(const std::string &arg, Context &context) {
     // try to interpret as a variable
     if (context.is_valid_varname(arg)) {
         return context.get_variable_value(arg);

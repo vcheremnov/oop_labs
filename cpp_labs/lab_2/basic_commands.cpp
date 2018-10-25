@@ -8,7 +8,6 @@
 namespace {
 
 using ArgList = Calculator::ArgList;
-using Context = Calculator::Context;
 
 } // anonymous namespace
 
@@ -186,10 +185,10 @@ void DivCommand::execute(const ArgList &args, Context &context) {
 
 class CmdInfoCommand: public Command {
 public:
-    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+    void execute(const Calculator::ArgList &args, Context &context);
 };
 
-void CmdInfoCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+void CmdInfoCommand::execute(const Calculator::ArgList &args, Context &context) {
     _arg_number_check(1, args.size());
     std::string cmdInfo = CommandFactory::instance().command_info(args.front());
     context.print_val(cmdInfo);
@@ -199,29 +198,14 @@ void CmdInfoCommand::execute(const Calculator::ArgList &args, Calculator::Contex
 
 class CmdListCommand: public Command {
 public:
-    void execute(const Calculator::ArgList &args, Calculator::Context &context);
+    void execute(const Calculator::ArgList &args, Context &context);
 };
 
-void CmdListCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
+void CmdListCommand::execute(const Calculator::ArgList &args, Context &context) {
     _arg_number_check(0, args.size());
     auto cmdList = CommandFactory::instance().get_command_list();
     for (const auto &cmdName: cmdList) {
         context.print_val(cmdName);
-    }
-}
-
-// variable list command
-
-class VarListCommand: public Command {
-public:
-    void execute(const Calculator::ArgList &args, Calculator::Context &context);
-};
-
-void VarListCommand::execute(const Calculator::ArgList &args, Calculator::Context &context) {
-    _arg_number_check(0, args.size());
-    auto varList = context.get_variable_list();
-    for (const auto &varName: varList) {
-        context.print_val(varName);
     }
 }
 
@@ -240,6 +224,5 @@ CreatorOf<MultCommand>      multCreator     ("*",           "* <no args>");
 CreatorOf<DivCommand>       divCreator      ("/",           "/ <no args>");
 CreatorOf<CmdInfoCommand>   helpCreator     ("CMDINFO",     "CMDINFO <command name>");
 CreatorOf<CmdListCommand>   cmdListCreator  ("CMDLIST",     "CMDLIST <no args>");
-CreatorOf<VarListCommand>   varListCreator  ("VARLIST",     "VARLIST <no args>");
 
 } // anonymous namespace
