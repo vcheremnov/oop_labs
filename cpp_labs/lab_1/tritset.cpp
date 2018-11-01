@@ -31,7 +31,7 @@ size_type TritSet::cardinality(Trit value) const {
     }
 }
 
-std::unordered_map<Trit, size_type, TritHash> TritSet::cardinality() const {
+std::unordered_map<Trit, size_type> TritSet::cardinality() const {
     return  {
                 {Trit::False, _falseCount},
                 {Trit::True, _trueCount},
@@ -59,20 +59,23 @@ void TritSet::resize(size_type size) {
         TritSetAux::set_value(Trit::Unknown, _storage.back(), begPos, endPos);
     }
     // refresh the logical length
-    if (size < _length) {
+    if (_capacity < _length) {
         _length = _find_length(_capacity);
     }
 }
 
 void TritSet::trim(size_type lastIndex){
-    if (lastIndex < _capacity) {
-        // set all storage elements after lastIndex to 0 (since 00 <=> Trit::Unknown)
-        size_type elemIndex = TritSetAux::get_element_index(lastIndex);
-        std::fill(_storage.begin() + elemIndex + 1, _storage.end(), 0u);
+    if (lastIndex < _length) {
+        // index of the element following the element containing lastIndex trit
+        size_type begElemIndex = TritSetAux::get_element_index(lastIndex) + 1;
+        // index of the element following the element with the last set trit
+        size_type endElemIndex = TritSetAux::get_element_index(_length - 1) + 1;
+        // fill the range [begElemIndex, endElemIndex) with zeros
+        std::fill(_storage.begin() + begElemIndex, _storage.begin() + endElemIndex, 0u);
         // reset residual trits within the element containing lastIndex trit
         size_type begPos = TritSetAux::get_trit_position(lastIndex),
                   endPos = TritSetAux::TRITS_PER_ELEM;
-        TritSetAux::set_value(Trit::Unknown, _storage[elemIndex], begPos, endPos);
+        TritSetAux::set_value(Trit::Unknown, _storage[begElemIndex - 1], begPos, endPos);
         // change the logical length
         _length = _find_length(lastIndex);
     }
@@ -91,49 +94,53 @@ Reference TritSet::operator[] (size_type tritIndex) {
 // tritwise operations
 
 TritSet &TritSet::operator&= (const TritSet &set) {
-    return *this = (*this & set);
+    if (this != &set) {
+        // resize if doesn't fit the result's capacity
+        if (capacity() < set.capacity()) {
+            resize(set.capacity());
+        }
+        // find maximum logical length
+        size_type maxLength = std::max(length(), set.length());
+        // get result of the operation
+        for (size_type ix = 0; ix < maxLength; ++ix) {
+            _set_value_at(ix, _get_value_at(ix) & set._get_value_at(ix));
+        }
+    }
+    return *this;
 }
 
 TritSet &TritSet::operator|= (const TritSet &set) {
-    return *this = (*this | set);
+    if (this != &set) {
+        // resize if doesn't fit the result's capacity
+        if (capacity() < set.capacity()) {
+            resize(set.capacity());
+        }
+        // find maximum logical length
+        size_type maxLength = std::max(length(), set.length());
+        // get result of the operation
+        for (size_type ix = 0; ix < maxLength; ++ix) {
+            _set_value_at(ix, _get_value_at(ix) | set._get_value_at(ix));
+        }
+    }
+    return *this;
 }
 
-TritSet TritSet::operator~ () const {
-    TritSet resultSet(*this);
-    for (size_type ix = 0; ix < length(); ++ix) {
+TritSet operator~ (const TritSet &set) {
+    TritSet resultSet = set;
+    for (size_type ix = 0; ix < set.length(); ++ix) {
         resultSet._set_value_at(ix, ~resultSet._get_value_at(ix));
     }
     return resultSet;
 }
 
-TritSet TritSet::operator| (const TritSet &set) const {
-    // initialize result set with the tritset of minimum logical length
-    TritSet resultSet = (this->length() < set.length()) ? *this : set;
-    // resize if doesn't fit the result's capacity
-    size_type maxCapacity = std::max(this->capacity(), set.capacity());
-    if (resultSet.capacity() < maxCapacity) {
-        resultSet.resize(maxCapacity);
-    }
-    // get result of the operation
-    for (size_type ix = 0; ix < resultSet.length(); ++ix) {
-        resultSet._set_value_at(ix, this->_get_value_at(ix) | set._get_value_at(ix));
-    }
-    return resultSet;
+TritSet operator| (const TritSet &set1, const TritSet &set2) {
+    return (set1.capacity() > set2.capacity()) ?
+                TritSet(set1) |= set2 : TritSet(set2) |= set1;
 }
 
-TritSet TritSet::operator& (const TritSet &set) const {
-    // initialize result set with the tritset of minimum logical length
-    TritSet resultSet = (this->length() < set.length()) ? *this : set;
-    // resize if doesn't fit the result's capacity
-    size_type maxCapacity = std::max(this->capacity(), set.capacity());
-    if (resultSet.capacity() < maxCapacity) {
-        resultSet.resize(maxCapacity);
-    }
-    // get result of the operation
-    for (size_type ix = 0; ix < resultSet.length(); ++ix) {
-        resultSet._set_value_at(ix, this->_get_value_at(ix) & set._get_value_at(ix));
-    }
-    return resultSet;
+TritSet operator& (const TritSet &set1, const TritSet &set2) {
+    return (set1.capacity() > set2.capacity()) ?
+                TritSet(set1) &= set2 : TritSet(set2) &= set1;
 }
 
 // private methods
@@ -195,10 +202,9 @@ void TritSet::_update_length(Trit setValue, size_type setIndex) {
     }
 }
 
-size_type TritSet::_find_length(size_type evalLength) const {
-    // search starting from the estimated value of the length (evalLength)
-    // actual length is known to be <= evalLength
-    size_type length = evalLength;
+size_type TritSet::_find_length(size_type lenUpperEstimate) const {
+    // search starting from the upper estimate of the length
+    size_type length = lenUpperEstimate;
     for (; length > 0; --length) {
         if (_get_value_at(length - 1) != Trit::Unknown) {
             break;
