@@ -27,13 +27,3 @@ std::shared_ptr<Command> CommandFactory::get_command(const std::string &cmdName)
     }
     return _registry[cmdName]->create_command();
 }
-
-void CommandFactory::register_command(const std::string &cmdName, CommandCreator &creator) {
-    if (_registry.find(cmdName) == _registry.end()) {
-        _registry[cmdName] = &creator;
-    }
-}
-
-void CommandFactory::forget_command(const std::string &cmdName) {
-    _registry.erase(cmdName);
-}

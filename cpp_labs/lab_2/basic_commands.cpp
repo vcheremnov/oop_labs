@@ -9,13 +9,11 @@ namespace {
 
 using ArgList = Calculator::ArgList;
 
-} // anonymous namespace
-
 // # command - a comment line
 
 class CommentCommand: public Command {
 public:
-    void execute(const ArgList &args, Context &context) {}
+    void execute(const ArgList&, Context&) {}
 };
 
 // PRINT command  - print the top of the stack
@@ -43,7 +41,13 @@ public:
 
 void DefineCommand::execute(const ArgList &args, Context &context) {
     _arg_number_check(2, args.size());
-    double varValue = Command::_convert_to_value(args.back(), context);
+    double varValue = 0.0;
+    if (context.is_valid_varname(args.back())) {
+        varValue = context.get_variable_value(args.back());
+    }
+    else {
+        varValue = context.get_value_from(args.back());
+    }
     context.set_variable_value(args.front(), varValue);
 }
 
@@ -69,7 +73,13 @@ public:
 
 void PushCommand::execute(const ArgList &args, Context &context) {
     _arg_number_check(1, args.size());
-    double val = Command::_convert_to_value(args.front(), context);
+    double val = 0.0;
+    if (context.is_valid_varname(args.front())) {
+        val = context.get_variable_value(args.front());
+    }
+    else {
+        val = context.get_value_from(args.front());
+    }
     context.stack_push(val);
 }
 
@@ -107,7 +117,6 @@ void SqrtCommand::execute(const ArgList &args, Context &context) {
         throw CommandError::FunctionDomainError(msgStream.str());
     }
     context.stack_top() = std::sqrt(topVal);
-    context.stack_push(std::sqrt(topVal));
 }
 
 // + command
@@ -209,20 +218,28 @@ void CmdListCommand::execute(const Calculator::ArgList &args, Context &context) 
     }
 }
 
-namespace { // creators registration
+// command registration
 
-CreatorOf<CommentCommand>   commentCreator  ("#",           "# <comment>");
-CreatorOf<DefineCommand>    defineCreator   ("DEFINE",      "DEFINE <variable name> <variable value>");
-CreatorOf<PrintVarCommand>  printVarCreator ("PRINTVAR",    "PRINTVAR <variable name>");
-CreatorOf<PrintCommand>     printCreator    ("PRINT",       "PRINT <no args>");
-CreatorOf<PushCommand>      pushCreator     ("PUSH",        "PUSH <value>");
-CreatorOf<PopCommand>       popCreator      ("POP",         "POP <no args>");
-CreatorOf<SqrtCommand>      sqrtCreator     ("SQRT",        "SQRT <no args>");
-CreatorOf<PlusCommand>      plusCreator     ("+",           "+ <no args>");
-CreatorOf<MinusCommand>     minusCreator    ("-",           "- <no args>");
-CreatorOf<MultCommand>      multCreator     ("*",           "* <no args>");
-CreatorOf<DivCommand>       divCreator      ("/",           "/ <no args>");
-CreatorOf<CmdInfoCommand>   helpCreator     ("CMDINFO",     "CMDINFO <command name>");
-CreatorOf<CmdListCommand>   cmdListCreator  ("CMDLIST",     "CMDLIST <no args>");
+bool register_commands() {
+    auto &cmdFactory = CommandFactory::instance();
+
+    cmdFactory.register_command<CommentCommand> ("#", "# <comment>");
+    cmdFactory.register_command<DefineCommand>  ("DEFINE", "DEFINE <variable name> <variable value>");
+    cmdFactory.register_command<PrintVarCommand>("PRINTVAR", "PRINTVAR <variable name>");
+    cmdFactory.register_command<PrintCommand>   ("PRINT", "PRINT <no args>");
+    cmdFactory.register_command<PushCommand>    ("PUSH", "PUSH <value>");
+    cmdFactory.register_command<PopCommand>     ("POP", "POP <no args>");
+    cmdFactory.register_command<SqrtCommand>    ("SQRT", "SQRT <no args>");
+    cmdFactory.register_command<PlusCommand>    ("+", "+ <no args>");
+    cmdFactory.register_command<MinusCommand>   ("-", "- <no args>");
+    cmdFactory.register_command<MultCommand>    ("*", "* <no args>");
+    cmdFactory.register_command<DivCommand>     ("/", "/ <no args>");
+    cmdFactory.register_command<CmdInfoCommand> ("CMDINFO", "CMDINFO <command name>");
+    cmdFactory.register_command<CmdListCommand> ("CMDLIST", "CMDLIST <no args>");
+
+    return true;
+}
+
+bool commandReg = register_commands();
 
 } // anonymous namespace
