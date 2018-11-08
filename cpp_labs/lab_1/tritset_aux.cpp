@@ -46,7 +46,7 @@ namespace TritSetAux {
 const uint BITS_PER_TRIT = 2u;
 const uint TRITS_PER_ELEM = CHAR_BIT * sizeof(uint) / BITS_PER_TRIT;
 
-Trit get_value(const uint &element, size_type pos) {
+Trit get_value(uint element, size_type pos) {
     // get bits in the "pos" position
     uint tritMask = element & get_position_mask(pos);
     // shift to the low-order bits
@@ -75,6 +75,18 @@ void set_value(Trit value, uint &element, size_type begPos, size_type endPos) {
         posMask = shift_left(posMask, 1);
         tritMask = shift_left(tritMask, 1);
     }
+}
+
+size_type count_trits(Trit value, uint element, size_type begPos, size_type endPos) {
+    size_type cnt = 0;
+    uint tritMask = shift_left(get_trit_mask(value), begPos);
+    for (size_type pos = begPos; pos < endPos; ++pos) {
+        if ((tritMask & element) == tritMask) {
+            ++cnt;
+        }
+        tritMask = shift_left(tritMask, 1);
+    }
+    return cnt;
 }
 
 }   // namespace TritSetAux

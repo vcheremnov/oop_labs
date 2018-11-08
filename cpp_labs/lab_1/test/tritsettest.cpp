@@ -91,6 +91,17 @@ TEST(TritSetAux, TritSetAux_general) {
     for (size_type pos = begPos; pos < maxPos; ++pos) {
         ASSERT_EQ(TritSetAux::get_value(element, pos), Trit::True);
     }
+
+    // count_trits test
+    element = 0;
+    size_type pos = 0;
+    for (; pos + 1 < TritSetAux::TRITS_PER_ELEM; pos += 3) {
+        TritSetAux::set_value(Trit::True, element, pos);
+        TritSetAux::set_value(Trit::False, element, pos + 1);
+    }
+    ASSERT_EQ(TritSetAux::count_trits(Trit::True, element, 0, TritSetAux::TRITS_PER_ELEM), pos / 3);
+    ASSERT_EQ(TritSetAux::count_trits(Trit::False, element, 0, TritSetAux::TRITS_PER_ELEM), pos / 3);
+
 }
 
 // TritSet::Reference
@@ -213,14 +224,19 @@ TEST(TritSetTest, TritSet_resize) {
         str_repr[ix] = '0';
         str_repr[ix + 1] = '1';
     }
-    // resize to remove half of them
+    ASSERT_EQ(set.cardinality(Trit::False), size / 2);
+    // resize to remove half of them & check cardinality
     size /= 2;
     set.resize(size);
     str_repr.resize(size);
     ASSERT_EQ(set.capacity(), size);
+    ASSERT_EQ(set.cardinality(Trit::True), size / 2);
+    ASSERT_EQ(set.cardinality(Trit::False), size / 2);
     // resize back
     set.resize(size * 2);
     str_repr.resize(size * 2, '?');
+    ASSERT_EQ(set.cardinality(Trit::True), size / 2);
+    ASSERT_EQ(set.cardinality(Trit::False), size / 2);
     // check whether the first half of values is saved, and another is not
     ASSERT_EQ(get_string_repr(set), str_repr);
 
@@ -330,6 +346,7 @@ TEST(TritSetTest, TritSet_cardinality) {
     set[trueIndex] = Trit::Unknown;
     ASSERT_EQ(set.cardinality(Trit::True), 0u);
     ASSERT_EQ(set.cardinality(Trit::Unknown), 0u);
+
 }
 
 TEST(TritSetTest, TritSet_trim) {
@@ -338,19 +355,22 @@ TEST(TritSetTest, TritSet_trim) {
     std::string str_repr(size, '?');
 
     // fill the tritset
-    for (size_type ix = 0; ix + 1 < set.capacity(); ix += 2) {
+    size_type ix = 0;
+    for (; ix + 1 < set.capacity(); ix += 2) {
         set[ix] = Trit::True;
         set[ix + 1] = Trit::False;
         str_repr[ix] = '1';
         str_repr[ix + 1] = '0';
     }
 
-    // trim & check values and logical length
-    size_type lastIndex = size / 2;
+    // trim & check values, logical length and cardinality
+    size_type lastIndex = ix / 2;
     set.trim(lastIndex);
     std::fill(str_repr.begin() + lastIndex, str_repr.end(), '?');
     ASSERT_EQ(set.length(), lastIndex);
     ASSERT_EQ(get_string_repr(set), str_repr);
+    ASSERT_EQ(set.cardinality(Trit::True), ix / 4);
+    ASSERT_EQ(set.cardinality(Trit::False), ix / 4);
 }
 
 TEST(TritSetTest, TritSet_const_subscript) {

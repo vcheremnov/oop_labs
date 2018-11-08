@@ -46,6 +46,7 @@ void TritSet::shrink() {
 }
 
 void TritSet::resize(size_type size) {
+    _forget_trit_values(size);
     // set capacity equal to the given size
     _capacity = size;
     // set minimum possible size for the storage
@@ -64,8 +65,9 @@ void TritSet::resize(size_type size) {
     }
 }
 
-void TritSet::trim(size_type lastIndex){
+void TritSet::trim(size_type lastIndex) {
     if (lastIndex < _length) {
+        _forget_trit_values(lastIndex);
         // index of the element following the element containing lastIndex trit
         size_type begElemIndex = TritSetAux::get_element_index(lastIndex) + 1;
         // index of the element following the element with the last set trit
@@ -189,6 +191,19 @@ void TritSet::_update_counters(Trit setValue, Trit oldValue) {
     }
     else if (oldValue == Trit::True) {
         --_trueCount;
+    }
+}
+
+void TritSet::_forget_trit_values(size_type startIndex) {
+    if (startIndex < _length) {
+        size_type startElemIndex = TritSetAux::get_element_index(startIndex);
+        size_type startPos = TritSetAux::get_trit_position(startIndex);
+        _trueCount = TritSetAux::count_trits(Trit::True, _storage[startElemIndex], 0, startPos);
+        _falseCount = TritSetAux::count_trits(Trit::False, _storage[startElemIndex], 0, startPos);
+        for (size_type elemIndex = 0; elemIndex < startElemIndex; ++elemIndex) {
+            _trueCount += TritSetAux::count_trits(Trit::True, _storage[elemIndex], 0, TritSetAux::TRITS_PER_ELEM);
+            _falseCount += TritSetAux::count_trits(Trit::False, _storage[elemIndex], 0, TritSetAux::TRITS_PER_ELEM);
+        }
     }
 }
 

@@ -16,9 +16,11 @@ namespace TritSetAux {
 extern const uint BITS_PER_TRIT;
 extern const uint TRITS_PER_ELEM;
 
-Trit get_value(const uint &element, size_type pos);
+Trit get_value(uint element, size_type pos);
 void set_value(Trit value, uint &element, size_type pos);
 void set_value(Trit value, uint &element, size_type begPos, size_type endPos);
+
+size_type count_trits(Trit value, uint element, size_type begPos, size_type endPos);
 
 inline size_type get_storage_size(size_type tritsNum) {
     return tritsNum / TRITS_PER_ELEM + (tritsNum % TRITS_PER_ELEM != 0);
