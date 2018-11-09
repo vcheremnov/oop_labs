@@ -13,8 +13,8 @@ void print_usage(const std::string &programName) {
 }
 
 int process_file(std::istream &inFile, std::ostream &outFile) {
-    Calculator calc(inFile, outFile);
-    calc.calculate();
+    Calculator calc;
+    calc.calculate(inFile, outFile);
     return EXIT_SUCCESS;
 }
 

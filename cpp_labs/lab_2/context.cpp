@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <cctype>
 #include "context.h"
 #include "command_errors.h"
 

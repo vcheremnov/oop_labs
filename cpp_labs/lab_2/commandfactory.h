@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <iomanip>
 #include <type_traits>
 #include "command.h"
 
@@ -55,7 +56,13 @@ public:
     template<typename Cmd>
     void register_command(const std::string &cmdName, const std::string &cmdInfo) {
         static_assert(std::is_base_of<Command, Cmd>::value, "Class Cmd has to inherit from the class Command");
-        _registry[cmdName].reset(new CommandCreator<Cmd>(cmdName, cmdInfo));
+        if (_is_valid_cmdname(cmdName)) {
+            _registry[cmdName].reset(new CommandCreator<Cmd>(cmdName, cmdInfo));
+        }
+        else {
+            std::cerr << "Failed to register command " << std::quoted(cmdName)
+                      << ": invalid command name" << std::endl;
+        }
     }
     void forget_command(const std::string &cmdName)
         { _registry.erase(cmdName); }
@@ -69,6 +76,8 @@ private:
     CommandFactory(const CommandFactory&) = delete;
     CommandFactory& operator= (const CommandFactory&) = delete;
     std::map<std::string, std::unique_ptr<BaseCommandCreator>> _registry;
+    // command name validity check
+    bool _is_valid_cmdname(const std::string &cmdName);
 };
 
 #endif // COMMANDFACTORY_H

@@ -7,8 +7,6 @@
 
 namespace {
 
-using ArgList = Calculator::ArgList;
-
 // # command - a comment line
 
 class CommentCommand: public Command {
@@ -194,10 +192,10 @@ void DivCommand::execute(const ArgList &args, Context &context) {
 
 class CmdInfoCommand: public Command {
 public:
-    void execute(const Calculator::ArgList &args, Context &context);
+    void execute(const ArgList &args, Context &context);
 };
 
-void CmdInfoCommand::execute(const Calculator::ArgList &args, Context &context) {
+void CmdInfoCommand::execute(const ArgList &args, Context &context) {
     _arg_number_check(1, args.size());
     std::string cmdInfo = CommandFactory::instance().command_info(args.front());
     context.print_val(cmdInfo);
@@ -207,10 +205,10 @@ void CmdInfoCommand::execute(const Calculator::ArgList &args, Context &context) 
 
 class CmdListCommand: public Command {
 public:
-    void execute(const Calculator::ArgList &args, Context &context);
+    void execute(const ArgList &args, Context &context);
 };
 
-void CmdListCommand::execute(const Calculator::ArgList &args, Context &context) {
+void CmdListCommand::execute(const ArgList &args, Context &context) {
     _arg_number_check(0, args.size());
     auto cmdList = CommandFactory::instance().get_command_list();
     for (const auto &cmdName: cmdList) {

@@ -3,23 +3,23 @@
 
 #include <vector>
 #include <iostream>
+#include <iterator>
 #include "context.h"
+#include "command.h"
+#include "parser.h"
 
 // Calculator
 
 class Calculator {
 public:
-    // type names
-    using ArgList = std::vector<std::string>;
-    // public methods
-    Calculator(std::istream &inputStream, std::ostream &outputStream):
-        _context(outputStream), _inputStream(inputStream) {}
-    void calculate();
+    void calculate(std::istream &inputStream, std::ostream &outputStream);
 private:
-    Context _context;
-    std::istream &_inputStream;
-    // line parsing
-    bool _parse_line(std::string &commandName, ArgList &argList);
+    std::string _get_cmdname_from(Parser::TokenList &tokenList)
+        { return std::string(std::move(tokenList.front())); }
+    Command::ArgList _get_arglist_from(Parser::TokenList &tokenList)
+        { return Command::ArgList(std::make_move_iterator(tokenList.begin() + 1),
+                                  std::make_move_iterator(tokenList.end())); }
+    void _process_stream(Parser &tokenParser, Context &context);
 };
 
 

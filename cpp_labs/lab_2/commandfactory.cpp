@@ -1,6 +1,23 @@
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
+#include <cctype>
 #include "commandfactory.h"
+
+namespace {
+
+bool _isspace(char ch) {
+    return std::isspace(static_cast<unsigned char>(ch));
+}
+
+} // anonymous namespace
+
+bool CommandFactory::_is_valid_cmdname(const std::string &cmdName) {
+    if (cmdName.empty()) {
+        return false;
+    }
+    return std::find_if(cmdName.cbegin(), cmdName.cend(), _isspace) == cmdName.cend();
+}
 
 CommandFactory::CommandList CommandFactory::get_command_list() {
     CommandList cmdList;
