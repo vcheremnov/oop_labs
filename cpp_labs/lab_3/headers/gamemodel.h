@@ -39,9 +39,9 @@ enum class ActivePlayer {
 class GameModel {
 public:
     // constructor
-    GameModel() = default;
+    GameModel();
     // menu selection
-    MenuSelector &get_menu_selector()
+    MenuSelector &menu_selector()
         { return _menuSelector; }
     // view
     void attach_view(GameView *view) {
@@ -64,13 +64,12 @@ public:
     }
     void finish_game();
     void quit()
-        { _isQuit = true;
-          _state = GameState::QuitScreen;
+        { _state = GameState::QuitScreen;
           notify(); }
     bool game_started()
         { return _gameStarted; }
     bool is_quit()
-        { return _isQuit; }
+        { return _state == GameState::QuitScreen; }
     void set_game_state(GameState state)
         { _state = state; notify(); }
     GameState get_game_state()
@@ -113,7 +112,6 @@ private:
     PlayerStats _stats;
     // game state
     GameState _state = GameState::SplashScreen;
-    bool _isQuit = false;
     // menu selector
     MenuSelector _menuSelector;
 };

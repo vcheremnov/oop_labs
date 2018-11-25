@@ -14,6 +14,10 @@
 //    }
 //}
 
+GameModel::GameModel(): _menuSelector(this) {
+
+}
+
 void GameModel::_next_player() {
     switch (_activePlayer) {
     case ActivePlayer::Player1:

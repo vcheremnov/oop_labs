@@ -25,11 +25,18 @@ private:
 };
 
 class ConsoleScreen: public BaseScreen {
+public:
+    void render(GameModel*) override;
+    void set_console_window(ConsoleWindow *win)
+        { _win = win; }
 protected:
+    ConsoleWindow *_get_console_window()
+        { return _win; }
     void _load_background(const std::string &filename);
     const std::string &_get_background()
         { return _background; }
 private:
+    ConsoleWindow *_win = nullptr;
     std::string _background;
 };
 

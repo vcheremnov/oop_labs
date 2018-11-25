@@ -6,17 +6,10 @@ namespace {
 
 class SplashScreen: public ConsoleScreen {
 public:
-    SplashScreen()
-        { _load_background("ascii/splash"); }
-    void render(GameModel*) override;
+    SplashScreen() {
+        _load_background("ascii/splash");
+    }
 };
-
-void SplashScreen::render(GameModel *model) {
-    clear();
-    printw("%s", _get_background().c_str());
-    box(stdscr, 0, 0);
-    refresh();
-}
 
 // register screen
 

@@ -1,9 +1,10 @@
 #include "game.h"
+#include "gamemodel.h"
 #include <map>
 
-class GameModel;
-
 // game factory
+
+namespace {
 
 class GameCreator {
 public:
@@ -50,7 +51,6 @@ private:
     std::map<GameType, std::unique_ptr<GameCreator>> _registry;
 };
 
-namespace {
 
 bool register_game_types() {
     auto &factory = GameFactory::instance();
@@ -98,6 +98,8 @@ void Game::run() {
         // rendering
         _view->show();
     }
+    // quit screen
+    _humanPlayer->wait_event();
 }
 
 void Game::_switch_active_player() {

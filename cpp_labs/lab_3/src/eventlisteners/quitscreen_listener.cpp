@@ -3,10 +3,7 @@
 
 namespace  {
 
-class QuitScreenListener: public EventListener {
-public:
-
-};
+class QuitScreenListener: public EventListener {};
 
 bool register_listener() {
     ListenerFactory::instance().register_listener<QuitScreenListener>(GameState::QuitScreen);

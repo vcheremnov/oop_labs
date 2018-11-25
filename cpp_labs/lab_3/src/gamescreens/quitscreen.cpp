@@ -6,9 +6,9 @@ namespace {
 
 class QuitScreen: public ConsoleScreen {
 public:
-    void render(GameModel *model) override {}
-private:
-
+    QuitScreen() {
+        _load_background("ascii/quit");
+    }
 };
 
 bool register_screen() {

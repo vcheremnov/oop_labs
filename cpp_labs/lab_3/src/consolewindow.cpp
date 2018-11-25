@@ -25,8 +25,24 @@ decltype(A_BOLD) TextAttr_to_A(TextAttr attr) {
 
 // constructors & destructor
 
+ConsoleWindow::ConsoleWindow() {
+    use_env(false);
+    _win = initscr();
+    getmaxyx(_win, _height, _width);
+    cbreak();
+    noecho();
+    keypad(_win, true);
+    curs_set(0);
+}
+
 ConsoleWindow::ConsoleWindow(size_type width, size_type height, pos line, pos col):
     _win(newwin(height, width, line, col)) {
+    getmaxyx(_win, _height, _width);
+}
+
+ConsoleWindow::ConsoleWindow(ConsoleWindow &win, size_type width, size_type height,
+                             pos line, pos col):
+    _win(subwin(win._win, height, width, line, col)) {
     getmaxyx(_win, _height, _width);
 }
 
@@ -53,11 +69,11 @@ void ConsoleWindow::move_cursor(pos line, pos col) {
 }
 
 void ConsoleWindow::print_text(const char *text) {
-    wprintw(_win, text);
+    wprintw(_win, "%s", text);
 }
 
 void ConsoleWindow::print_text_at(pos line, pos col, const char *text) {
-    mvwprintw(_win, line, col, text);
+    mvwprintw(_win, line, col, "%s", text);
 }
 
 void ConsoleWindow::set_attributes(const std::initializer_list<TextAttr> &attrList) {
@@ -70,4 +86,11 @@ void ConsoleWindow::reset_attributes(const std::initializer_list<TextAttr> &attr
     for (auto &attr: attrList) {
         wattroff(_win, TextAttr_to_A(attr));
     }
+}
+
+// move & resize
+
+void ConsoleWindow::resize(size_type width, size_type height) {
+    wresize(_win, height, width);
+    getmaxyx(_win, _height, _width);
 }

@@ -32,10 +32,11 @@ void HumanPlayer::wait_event() {
     if (_get_listener() == nullptr) {
         throw std::runtime_error("HumanPlayer::wait_event(): listener is NULL");
     }
+    flushinp();
     int code = getch();
     if (code == KEY_MOUSE) {
         MouseEvent event;
-        // filling event...
+        // filling mouse event...
         // ...
         _get_listener()->mouse_event_occurred(event);
     }

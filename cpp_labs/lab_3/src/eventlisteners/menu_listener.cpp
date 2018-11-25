@@ -13,22 +13,22 @@ private:
 };
 
 void MenuListener::key_event_occurred(const KeyEvent &keyPress) {
-    Option option = _get_model()->get_menu_selector().get_option();
+    Option option = _get_model()->menu_selector().get_option();
     switch (keyPress.get_keycode()) {
     case KeyCode::KeyUP:
-        _get_model()->get_menu_selector().prev_option();
+        _get_model()->menu_selector().prev_option();
         break;
     case KeyCode::KeyDOWN:
-        _get_model()->get_menu_selector().next_option();
+        _get_model()->menu_selector().next_option();
         break;
     case KeyCode::KeyLEFT:
         if (option == Option::Difficulty) {
-            _get_model()->get_menu_selector().prev_difficulty();
+            _get_model()->menu_selector().prev_difficulty();
         }
         break;
     case KeyCode::KeyRIGHT:
         if (option == Option::Difficulty) {
-            _get_model()->get_menu_selector().next_difficulty();
+            _get_model()->menu_selector().next_difficulty();
         }
         break;
     case KeyCode::KeyENTER:

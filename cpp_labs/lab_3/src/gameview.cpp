@@ -20,16 +20,15 @@ void GameView::update(GameModel *model) {
 
 // console view
 
-ConsoleView::ConsoleView(GameModel *model): GameView (model) {
-
-    // init ncurses
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, true);
-    curs_set(0);
-    wresize(stdscr, consoleHeight, consoleWidth);
+ConsoleView::ConsoleView(GameModel *model):
+    GameView (model), _consoleWin(new ConsoleWindow()) {
+    // resize window
+    _consoleWin->resize(consoleWidth, consoleHeight);
+    // init screens
     ScreenFactory::instance().get_all_screens(_screens);
+    for (auto &mapItem: _screens) {
+        mapItem.second->set_console_window(_consoleWin.get());
+    }
 }
 
 ConsoleView::~ConsoleView() {
@@ -37,8 +36,9 @@ ConsoleView::~ConsoleView() {
 }
 
 void ConsoleView::show() {
-    if (_isUpdated) {
-        GameState gameState = _model->get_game_state();
-        _screens[gameState]->render(_model);
+    if (_is_updated()) {
+        _reset_update();
+        GameState gameState = _get_model()->get_game_state();
+        _screens[gameState]->render(_get_model());
     }
 }

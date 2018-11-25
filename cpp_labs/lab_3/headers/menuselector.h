@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+class GameModel;
+
 class MenuSelector {
 public:
     enum class Option {
@@ -12,7 +14,7 @@ public:
     enum class Difficulty {
         Easy, Normal, Hard, Total
     };
-    MenuSelector();
+    MenuSelector(GameModel*);
     void reset();
     void next_option();
     void prev_option();
@@ -24,6 +26,7 @@ public:
         { return _difficulty; }
     std::string get_option_name(Option);
 private:
+    GameModel *_model = nullptr;
     Option _option = Option::StartGame;
     Difficulty _difficulty = Difficulty::Easy;
     std::map<Option, std::string> _optionNames;

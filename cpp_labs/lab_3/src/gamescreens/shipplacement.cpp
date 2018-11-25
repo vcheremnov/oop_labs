@@ -6,10 +6,9 @@ namespace {
 
 class ShipPlacementScreen: public ConsoleScreen {
 public:
-    void render(GameModel *model) override {}
-private:
-
+    ShipPlacementScreen() = default;
 };
+
 bool register_screen() {
     ScreenFactory::instance().register_screen<ShipPlacementScreen>(GameState::ShipPlacement);
     return true;

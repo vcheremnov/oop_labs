@@ -6,6 +6,6 @@ enum class GameState {
     MenuSelect,
     ShipPlacement,
     Battle,
-    StatsScreen,
+    Stats,
     QuitScreen
 };
