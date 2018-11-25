@@ -1,53 +1,80 @@
-#ifndef BASESCREEN_H
-#define BASESCREEN_H
+#pragma once
 
 #include <vector>
-#include <ncurses.h>
 #include <cstddef>
-#include "baseobject.h"
+#include <string>
+#include <map>
+#include <memory>
+#include "consolewindow.h"
+#include "gamestate.h"
+#include "object.h"
 
-class BaseWindow {
-public:
-    // type names
-    using pos = int;
-    using size_type = int;
-    // constructors
-    BaseWindow(size_type width, size_type height, pos screenPosX, pos screenPosY):
-        _width(width), _height(height), _screenPosX(screenPosX), _screenPosY(screenPosY) {}
-    // public methods
-    virtual void render_object(BaseObject &obj);
-    size_type get_width()
-        { return _width; }
-    size_type get_height()
-        { return _height; }
-private:
-    size_type _width = 0, _height = 0;
-    pos _screenPosX = 0, _screenPosY = 0;
-};
-
-class ConsoleWindow: public BaseWindow {
-public:
-    ConsoleWindow(size_type width, size_type height, pos screenPosX, pos screenPosY):
-        BaseWindow(width, height, screenPosX, screenPosY) {
-        _win = ::newwin(height, width, screenPosY, screenPosX);
-    }
-    void render_object(BaseObject &obj) override;
-    void clear()
-        { ::wclear(_win); }
-private:
-    ::WINDOW *_win;
-    pos _cursorPosX = 0, _cursorPosY = 0;
-};
+class GameModel;
 
 class BaseScreen {
 public:
-    void render();
+    virtual ~BaseScreen() = default;
+    virtual void render(GameModel*) = 0;
+protected:
+    void _add_object(Object *obj)
+        { _objects.push_back(std::unique_ptr<Object>(obj)); }
+    void _render_objects(GameModel *model)
+        { for (auto &objPtr: _objects) objPtr->render(model); }
 private:
-    std::vector<BaseObject*> _uiElements;
+    std::vector<std::unique_ptr<Object>> _objects;
 };
 
-class MenuScreen: public BaseScreen {
-
+class ConsoleScreen: public BaseScreen {
+protected:
+    void _load_background(const std::string &filename);
+    const std::string &_get_background()
+        { return _background; }
+private:
+    std::string _background;
 };
 
-#endif // BASESCREEN_H
+// screen factory
+
+class BaseScreenCreator {
+public:
+    virtual ~BaseScreenCreator() = default;
+    virtual ConsoleScreen *get_screen() = 0;
+};
+
+template<typename Screen>
+class ConsoleScreenCreator: public BaseScreenCreator {
+public:
+    static_assert(std::is_base_of<ConsoleScreen, Screen>::value,
+                  "Class Screen has to inherit from ConsoleScreen");
+    ConsoleScreen *get_screen() override
+        { return new Screen(); }
+};
+
+class ScreenFactory {
+public:
+    // singleton access
+    static ScreenFactory &instance() {
+        static ScreenFactory obj;
+        return obj;
+    }
+    // registration
+    template<typename Screen>
+    void register_screen(GameState gameState) {
+         _registry[gameState].reset(new ConsoleScreenCreator<Screen>());
+    }
+    // factory methods
+    ConsoleScreen *get_screen(GameState gameState)
+        { return _registry[gameState]->get_screen(); }
+    void get_all_screens(std::map<GameState, std::unique_ptr<ConsoleScreen>> &screens) {
+        for (auto &regItem: _registry) {
+            screens[regItem.first].reset(get_screen(regItem.first));
+        }
+    }
+private:
+    ScreenFactory() = default;
+    ScreenFactory(const ScreenFactory&) = delete;
+    ScreenFactory &operator=(const ScreenFactory&) = delete;
+    // registry
+    std::map<GameState, std::unique_ptr<BaseScreenCreator>> _registry;
+};
+

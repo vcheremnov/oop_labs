@@ -1,25 +1,23 @@
 #include "game.h"
 #include <map>
 
+class GameModel;
+
 // game factory
 
 class GameCreator {
 public:
     virtual ~GameCreator() = default;
-    virtual std::shared_ptr<GameController> get_controller() = 0;
-    virtual std::shared_ptr<GameView> get_view() = 0;
+    virtual GameController *get_controller(GameModel*) = 0;
+    virtual GameView *get_view(GameModel*) = 0;
 };
 
-template<typename Controller, typename View>
-class ConcreteGameCreator: public GameCreator {
-    static_assert(std::is_base_of<GameController, Controller>::value,
-                  "Class Controller has to inherit from GameController");
-    static_assert(std::is_base_of<GameView, View>::value,
-                  "Class View has to inherit from GameView");
-    std::shared_ptr<GameController> get_controller()
-        { return std::make_shared<Controller>(); }
-    std::shared_ptr<GameView> get_view()
-        { return std::make_shared<View>(); }
+class ConsoleGameCreator: public GameCreator {
+public:
+    ConsoleController *get_controller(GameModel *model) override
+        { return new ConsoleController(model); }
+    ConsoleView *get_view(GameModel *model) override
+        { return new ConsoleView(model); }
 };
 
 class GameFactory {
@@ -40,10 +38,10 @@ public:
         _registry.erase(gameType);
     }
     // factory methods
-    std::shared_ptr<GameController> get_controller(GameType gameType)
-        { return _registry[gameType]->get_controller(); }
-    std::shared_ptr<GameView> get_view(GameType gameType)
-        { return _registry[gameType]->get_view(); }
+    GameController *get_controller(GameType gameType, GameModel *model)
+        { return _registry[gameType]->get_controller(model); }
+    GameView *get_view(GameType gameType, GameModel *model)
+        { return _registry[gameType]->get_view(model); }
 private:
     GameFactory() = default;
     GameFactory(const GameFactory&) = delete;
@@ -52,14 +50,63 @@ private:
     std::map<GameType, std::unique_ptr<GameCreator>> _registry;
 };
 
+namespace {
+
+bool register_game_types() {
+    auto &factory = GameFactory::instance();
+    factory.register_creator<ConsoleGameCreator>(GameType::ConsoleGame);
+    return true;
+}
+
+bool regCreators = register_game_types();
+
+}   // anonymous namespace
+
 // Game
 
 Game::Game(GameType gameType):
-    _controller{GameFactory::instance().get_controller(gameType)},
-    _view{GameFactory::instance().get_view(gameType)} {
+    _model{new GameModel()},
+    _view{GameFactory::instance().get_view(gameType, _model.get())},
+    _controller{GameFactory::instance().get_controller(gameType, _model.get())} {
 
+    // register view as model's observer
+    _model->attach_view(_view.get());
+    // players (KOSTYYYYYL)
+    _humanPlayer = std::make_shared<HumanPlayer>();
+    _botPlayer = std::make_shared<BotPlayer>();
+    // bind players to the controller
+    _controller->bind_to_human_player(_humanPlayer.get());
+    _controller->bind_to_bot_player(_botPlayer.get());
 }
 
 void Game::run() {
+    // show splash screen
+    _view->show();
+    // game loop
+    while (!_model->is_quit()) {
+        _controller->switch_listener(_model->get_game_state());
+        if (_model->game_started()) {
+            // check active player & switch
+            _switch_active_player();
+            // wait event from the active player
+            _activePlayer->wait_event();
+        }
+        else {
+            // wait event from the ui user
+            _humanPlayer->wait_event();
+        }
+        // rendering
+        _view->show();
+    }
+}
 
+void Game::_switch_active_player() {
+    switch (_model->get_active_player()) {
+    case ActivePlayer::Player1:
+        _activePlayer = _humanPlayer;
+        break;
+    case ActivePlayer::Player2:
+        _activePlayer = _botPlayer;
+        break;
+    }
 }

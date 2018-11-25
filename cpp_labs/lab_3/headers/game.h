@@ -1,5 +1,4 @@
-#ifndef GAME_H
-#define GAME_H
+#pragma once
 
 #include "gamemodel.h"
 #include "gameview.h"
@@ -14,20 +13,19 @@ enum class GameType {
 
 class Game {
 public:
-    enum class GameCondition {
-        SplashScreen, MenuScreen, GameScreen, StatsScreen
-    };
     // constructor
     Game(GameType gameType);
     // public methods
     void run();
 private:
-    void startBattle();
-    std::shared_ptr<Player> _player1, _player2;
-    std::shared_ptr<GameController> _controller;
-    std::shared_ptr<GameView> _view;
-    GameModel _model;
-    AILevel _aiPlayer1, _aiPlayer2;
+    // private methods
+    void _switch_active_player();
+    // private data
+    std::unique_ptr<GameModel> _model;
+    std::unique_ptr<GameView> _view;
+    std::unique_ptr<GameController> _controller;
+    std::shared_ptr<HumanPlayer> _humanPlayer;
+    std::shared_ptr<BotPlayer> _botPlayer;
+    std::shared_ptr<Player> _activePlayer;
 };
 
-#endif // GAME_H

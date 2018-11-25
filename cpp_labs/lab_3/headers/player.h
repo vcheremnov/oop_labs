@@ -1,68 +1,31 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#pragma once
 
-#include "gamecontroller.h"
-
-class Action {
-public:
-    virtual ~Action() = default;
-};
+#include "eventlistener.h"
+#include <map>
 
 class Player {
 public:
     virtual ~Player() = default;
-    virtual Action get_action(GameController &) = 0;
-};
-
-// player types
-enum class PlayerType {
-    HumanPlayer, BotPlayer
+    virtual void wait_event() = 0;
+    void set_listener(EventListener *listener)
+        { _listener = listener; }
+protected:
+    EventListener *_get_listener()
+        { return _listener; }
+private:
+    EventListener *_listener = nullptr;
 };
 
 // human player
 
 class HumanPlayer: public Player {
 public:
-
-};
-
-class ConsolePlayer: public HumanPlayer {
-public:
-
-};
-
-class GuiPlayer: public HumanPlayer {
-public:
-
+    void wait_event() override;
 };
 
 // bot player
 
-
-// AI level
-enum class AILevel {
-    Easy, Normal, Hard
-};
-
 class BotPlayer: public Player {
 public:
-
+    void wait_event() override;
 };
-
-class EasyBotPlayer: public BotPlayer {
-public:
-
-};
-
-class NormalBotPlayer: public BotPlayer {
-public:
-
-};
-
-class HardBotPlayer: public BotPlayer {
-public:
-
-};
-
-
-#endif // PLAYER_H
