@@ -26,13 +26,8 @@ decltype(A_BOLD) TextAttr_to_A(TextAttr attr) {
 // constructors & destructor
 
 ConsoleWindow::ConsoleWindow() {
-    use_env(false);
-    _win = initscr();
+    _win = stdscr;
     getmaxyx(_win, _height, _width);
-    cbreak();
-    noecho();
-    keypad(_win, true);
-    curs_set(0);
 }
 
 ConsoleWindow::ConsoleWindow(size_type width, size_type height, pos line, pos col):
@@ -47,7 +42,9 @@ ConsoleWindow::ConsoleWindow(ConsoleWindow &win, size_type width, size_type heig
 }
 
 ConsoleWindow::~ConsoleWindow() {
-    delwin(_win);
+    if (_win != stdscr) {
+        delwin(_win);
+    }
 }
 
 // public methods
@@ -66,6 +63,14 @@ void ConsoleWindow::draw_border() {
 
 void ConsoleWindow::move_cursor(pos line, pos col) {
     wmove(_win, line, col);
+}
+
+void ConsoleWindow::add_character(const chtype ch) {
+    waddch(_win, ch);
+}
+
+void ConsoleWindow::add_character_at(pos line, pos col, const chtype ch) {
+    mvwaddch(_win, line, col, ch);
 }
 
 void ConsoleWindow::print_text(const char *text) {

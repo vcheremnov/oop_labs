@@ -17,6 +17,8 @@ enum class KeyCode {
     KeyRIGHT,
     KeyENTER,
     KeySTAB,
+    KeySPACE,
+    KeyF5,
     KeyUNKNOWN
 };
 

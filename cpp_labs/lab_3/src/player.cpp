@@ -17,6 +17,10 @@ KeyCode int_to_keycode(int code) {
         return KeyCode::KeyRIGHT;
     case KEY_STAB:
         return KeyCode::KeySTAB;
+    case 'n':
+        return KeyCode::KeyF5;
+    case ' ':
+        return KeyCode::KeySPACE;
     case '\n':
         return KeyCode::KeyENTER;
     default:

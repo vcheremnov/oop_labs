@@ -26,11 +26,12 @@ private:
 
 class ConsoleView: public GameView {
 public:
+    static const int CONSOLE_WIDTH = 80;
+    static const int CONSOLE_HEIGHT = 24;
     ConsoleView(GameModel*);
     ~ConsoleView() override;
     void show() override;
 private:
-    const int consoleWidth = 80, consoleHeight = 24;
     std::unique_ptr<ConsoleWindow> _consoleWin;
     std::map<GameState, std::unique_ptr<ConsoleScreen>> _screens;
 };

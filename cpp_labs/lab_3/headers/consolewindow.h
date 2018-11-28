@@ -39,6 +39,8 @@ public:
     // cursor position
     void move_cursor(pos line, pos col);
     // print text
+    void add_character(const chtype);
+    void add_character_at(pos line, pos col, const chtype);
     void print_text(const char *text);
     void print_text_at(pos line, pos col, const char *text);
     void set_attributes(const std::initializer_list<TextAttr>&);

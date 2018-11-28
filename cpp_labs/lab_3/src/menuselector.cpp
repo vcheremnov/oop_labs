@@ -8,11 +8,10 @@ using Difficulty = MenuSelector::Difficulty;
 
 }
 
-MenuSelector::MenuSelector(GameModel *model) {
+MenuSelector::MenuSelector(GameModel *model): _model(model) {
     if (model == nullptr) {
         throw std::runtime_error("MenuSelector::MenuSelector(..): model is NULL");
     }
-    _model = model;
     _optionNames = {
         {Option::StartGame, "Start Game"},
         {Option::Difficulty, "Difficulty: "},
@@ -34,28 +33,28 @@ void MenuSelector::next_option() {
     if (++_option == Option::Total) {
         _option = Option::StartGame;
     }
-    _model->notify();
+    _model->notify_views();
 }
 
 void MenuSelector::prev_option() {
     if (--_option == Option::Total) {
         --_option;
     }
-    _model->notify();
+    _model->notify_views();
 }
 
 void MenuSelector::next_difficulty() {
     if (++_difficulty == Difficulty::Total) {
         _difficulty = Difficulty::Easy;
     }
-    _model->notify();
+    _model->notify_views();
 }
 
 void MenuSelector::prev_difficulty() {
     if (--_difficulty == Difficulty::Total) {
         --_difficulty;
     }
-    _model->notify();
+    _model->notify_views();
 }
 
 std::string MenuSelector::get_option_name(Option option) {

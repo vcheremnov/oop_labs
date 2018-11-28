@@ -5,11 +5,10 @@
 
 // base view
 
-GameView::GameView(GameModel *model) {
+GameView::GameView(GameModel *model): _model(model) {
     if (model == nullptr) {
         throw std::runtime_error("GameView::GameView(): model is NULL");
     }
-    _model = model;
 }
 
 void GameView::update(GameModel *model) {
@@ -21,9 +20,18 @@ void GameView::update(GameModel *model) {
 // console view
 
 ConsoleView::ConsoleView(GameModel *model):
-    GameView (model), _consoleWin(new ConsoleWindow()) {
-    // resize window
-    _consoleWin->resize(consoleWidth, consoleHeight);
+    GameView (model) {
+    // init ncurses
+//    use_env(true);
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, true);
+    curs_set(0);
+    // "create" main window
+    _consoleWin = std::make_unique<ConsoleWindow>();
+    // resize main window
+    _consoleWin->resize(CONSOLE_WIDTH, CONSOLE_HEIGHT);
     // init screens
     ScreenFactory::instance().get_all_screens(_screens);
     for (auto &mapItem: _screens) {

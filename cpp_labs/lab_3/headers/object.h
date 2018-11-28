@@ -23,5 +23,6 @@ protected:
     ConsoleWindow *_get_window()
         { return _win.get(); }
 private:
+    bool _hasBorder = true;
     std::unique_ptr<ConsoleWindow> _win;
 };

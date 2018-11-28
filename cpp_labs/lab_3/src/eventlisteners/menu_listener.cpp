@@ -42,7 +42,7 @@ void MenuListener::key_event_occurred(const KeyEvent &keyPress) {
 void MenuListener::_select_action(Option option) {
     switch (option) {
     case Option::StartGame:
-        _get_model()->start_game();
+        _get_model()->start_ship_init();
         break;
     case Option::Quit:
         _get_model()->quit();
@@ -52,7 +52,7 @@ void MenuListener::_select_action(Option option) {
     }
 }
 
-// register listener`
+// register listener
 
 bool register_listener() {
     ListenerFactory::instance().register_listener<MenuListener>(GameState::MenuSelect);

@@ -14,8 +14,7 @@
 //    }
 //}
 
-GameModel::GameModel(): _menuSelector(this) {
-
+GameModel::GameModel(): _menuSelector(this), _shipInitializer(this) {
 }
 
 void GameModel::_next_player() {
@@ -31,13 +30,55 @@ void GameModel::_next_player() {
 
 void GameModel::_init_fields() {
     // clear fields
-    _fields.front().first.clear();
-    _fields.front().second.clear(Field::Cell::Unknown);
-    _fields.back().first.clear();
-    _fields.back().second.clear(Field::Cell::Unknown);
-    // add available ships for placement
+    _fieldPairs[ActivePlayer::Player1].first.clear();
+    _fieldPairs[ActivePlayer::Player1].second.clear(Field::Cell::Unknown);
+    _fieldPairs[ActivePlayer::Player2].first.clear();
+    _fieldPairs[ActivePlayer::Player2].second.clear(Field::Cell::Unknown);
 }
 
-void GameModel::accept_choice() {
-
+bool GameModel::_place_ship(const Ship &ship) {
+    if (is_overlapping(ship)) {
+        return false;
+    }
+    _ships[_activePlayer].push_back(ship);
+    auto coordinates = ship.get_coordinates();
+    for (auto &posPair: coordinates) {
+        auto &field = _fieldPairs[_activePlayer].first;
+        field.set_cell_type(posPair.first, posPair.second, Field::Cell::Ship);
+    }
 }
+
+void GameModel::_remove_ship(const Ship &ship) {
+    _ships[_activePlayer].remove(ship);
+    auto coordinates = ship.get_coordinates();
+    for (auto &posPair: coordinates) {
+        auto &field = _fieldPairs[_activePlayer].first;
+        field.set_cell_type(posPair.first, posPair.second, Field::Cell::Empty);
+    }
+}
+
+bool GameModel::is_overlapping(const Ship &ship) {
+    auto coordinates = ship.get_coordinates();
+    for (auto &posPair: coordinates) {
+        auto &field = _fieldPairs[_activePlayer].first;
+        if (field.get_cell_type(posPair.first, posPair.second) == Field::Cell::Ship) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool GameModel::accept_choice() {
+    if (!_shipInitializer.placementDone()) {
+        return false;
+    }
+    _next_player();
+    if (_activePlayer == ActivePlayer::Player1) {
+        start_game();
+    }
+    else {
+        _shipInitializer.start_initialization(_activePlayer);
+    }
+    return true;
+}
+

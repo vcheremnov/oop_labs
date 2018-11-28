@@ -6,12 +6,15 @@
 #include <fstream>
 #include <map>
 #include <list>
+#include <unordered_set>
 #include "gameview.h"
 #include <set>
 #include "field.h"
+#include "ship.h"
 #include "player.h"
 #include "gamestate.h"
 #include "menuselector.h"
+#include "shipinitializer.h"
 
 // human player stats
 class PlayerStats {
@@ -32,12 +35,9 @@ enum class ShiftDirection {
     Left, Right, Up, Down
 };
 
-enum class ActivePlayer {
-    Player1, Player2
-};
-
 class GameModel {
 public:
+    friend class ShipInitializer;
     // constructor
     GameModel();
     // menu selection
@@ -56,22 +56,27 @@ public:
     // game state
     void go_to_menu() {
         _state = GameState::MenuSelect;
-        notify();
+        notify_views();
+    }
+    void start_ship_init() {
+        _state = GameState::ShipPlacement;
+        _activePlayer = ActivePlayer::Player1;
+        _init_fields();
+        _shipInitializer.start_initialization(_activePlayer);
+        notify_views();
     }
     void start_game() {
-        _state = GameState::ShipPlacement;
-        notify();
+        _state = GameState::Battle;
+        notify_views();
     }
     void finish_game();
     void quit()
         { _state = GameState::QuitScreen;
-          notify(); }
+          notify_views(); }
     bool game_started()
         { return _gameStarted; }
     bool is_quit()
         { return _state == GameState::QuitScreen; }
-    void set_game_state(GameState state)
-        { _state = state; notify(); }
     GameState get_game_state()
         { return _state; }
     ActivePlayer get_active_player()
@@ -80,38 +85,38 @@ public:
     void change_pos(ShiftDirection);
     void make_shot();
     // ships placement
-    void shift_ship(ShiftDirection);
-    void rotate_ship();
-    void place_ship();
-//    void remove_ship();
-    void change_ship();
-    void accept_choice();
+    bool is_overlapping(const Ship&);
+    bool accept_choice();
 // view
-    void notify() {
+    void notify_views() {
         for (auto &view: _views) {
             view->update(this);
         }
     }
+
+    // for debug purposes
+    void set_game_state(GameState state)
+        { _state = state; notify_views(); }
 private:
-    // view
-    std::list<GameView*> _views;
-    // ship initialization
-    void _init_fields();
-    // game process
-    bool _gameStarted = false;
-    ActivePlayer _activePlayer;
-//    void _random_player_choice();
-    void _next_player();
-    Field::pos _posX, _posY;
-    static const int PLAYER_NUMBER = 2;
-    using FieldPair = std::pair<Field, Field>;
-    std::vector<FieldPair> _fields{PLAYER_NUMBER};
-    using ShipSet = std::map<Ship::Type, Ship>;
-    std::vector<ShipSet> _ships{PLAYER_NUMBER};
-    // players info
-    PlayerStats _stats;
     // game state
     GameState _state = GameState::SplashScreen;
+    // game process
+    bool _gameStarted = false;
+    // views
+    std::list<GameView*> _views;
+    // active player
+    ActivePlayer _activePlayer;
+    void _next_player();
+    // ship initialization
+    void _init_fields();
+    bool _place_ship(const Ship&);
+    void _remove_ship(const Ship&);
+    using FieldPair = std::pair<Field, Field>;
+    std::map<ActivePlayer, FieldPair> _fieldPairs;
+    using ShipList = std::list<Ship>;
+    std::map<ActivePlayer, ShipList> _ships;
+    // ship initializer
+    ShipInitializer _shipInitializer;
     // menu selector
     MenuSelector _menuSelector;
 };

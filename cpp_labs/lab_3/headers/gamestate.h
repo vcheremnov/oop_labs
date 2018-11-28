@@ -9,3 +9,8 @@ enum class GameState {
     Stats,
     QuitScreen
 };
+
+// active player
+enum class ActivePlayer {
+    Player1, Player2
+};
