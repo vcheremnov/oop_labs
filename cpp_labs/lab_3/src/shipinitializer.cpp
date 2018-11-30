@@ -28,26 +28,24 @@ void ShipInitializer::start_initialization(ActivePlayer player) {
 }
 
 void ShipInitializer::next_type() {
-    if (_curType == Ship::Type::Total) {
+    if (++_curType == Ship::Type::Total) {
         _curType = Ship::Type::Ship1;
-    }
-    else {
-        _curType = static_cast<Ship::Type>(static_cast<int>(_curType) + 1);
     }
     _model->notify_views();
 }
 
 void ShipInitializer::prev_type() {
-    if (_curType == Ship::Type::Ship1) {
-        _curType = Ship::Type::Total;
-    }
-    else {
-        _curType = static_cast<Ship::Type>(static_cast<int>(_curType) - 1);
+    if (--_curType == Ship::Type::Total) {
+        --_curType;
     }
     _model->notify_views();
 }
 
-Ship &ShipInitializer::current_ship() {
+const Ship &ShipInitializer::current_ship() {
+    return const_cast<const Ship&>(_current_ship());
+}
+
+Ship &ShipInitializer::_current_ship() {
     auto curShipIx = _curIndexes[_curType];
     return _ships[_curType][curShipIx].first;
 }
@@ -67,18 +65,48 @@ void ShipInitializer::prev_ship() {
     _model->notify_views();
 }
 
-void ShipInitializer::set_ship() {
-    auto curShipIx = _curIndexes[_curType];
-    auto &curShipPair = _ships[_curType][curShipIx];
-    // check if ship hasn't been placed yet
-    if (curShipPair.second) {
-        // try to place the ship
-        if (_model->_place_ship(curShipPair.first)) {
-            // ship has been placed, set the flag to false
-            curShipPair.second = false;
-        }
+void ShipInitializer::rotate_ship() {
+    if (_current_ship()._rotate()) {
+        _model->notify_views();
     }
-    _model->notify_views();
+}
+
+void ShipInitializer::shift_ship(ShiftDirection direction) {
+    auto &ship = _current_ship();
+    auto bodyCopy = ship._body;
+    auto peripheryCopy = ship._shipPeriphery;
+    switch (direction) {
+    case ShiftDirection::Left:
+        ship._shift_left(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Up:
+        ship._shift_up(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Right:
+        ship._shift_right(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Down:
+        ship._shift_down(bodyCopy, peripheryCopy);
+        break;
+    }
+    if (ship._check_validity_of(bodyCopy)) {
+        ship._set_body(bodyCopy, peripheryCopy);
+        _model->notify_views();
+    }
+}
+
+void ShipInitializer::set_ship() {
+    if (!ship_is_overlapping()) {
+        auto curShipIx = _curIndexes[_curType];
+        auto &curShipPair = _ships[_curType][curShipIx];
+        // check if ship hasn't been placed yet
+        if (curShipPair.second) {
+            _model->_place_ship(curShipPair.first);
+            curShipPair.second = false;
+            next_ship();
+        }
+        _model->notify_views();
+    }
 }
 
 void ShipInitializer::reset_ship() {
@@ -90,8 +118,8 @@ void ShipInitializer::reset_ship() {
         _model->_remove_ship(curShipPair.first);
         // restore flag
         curShipPair.second = true;
+        _model->notify_views();
     }
-    _model->notify_views();
 }
 
 bool ShipInitializer::placementDone() {
@@ -103,4 +131,44 @@ bool ShipInitializer::placementDone() {
         }
     }
     return true;
+}
+
+bool ShipInitializer::ship_is_overlapping() {
+    auto &field = _model->get_field_pair().first;
+    auto &curShip = _ships[_curType][_curIndexes[_curType]].first;
+    for (auto &posPair: curShip.get_body()) {
+        if (field.get_cell_type(posPair.first, posPair.second) == Field::Cell::Ship) {
+            return true;
+        }
+    }
+    for (auto &posPair: curShip.get_periphery()) {
+        if (Field::is_valid_pos(posPair.first, posPair.second)) {
+            if (field.get_cell_type(posPair.first, posPair.second) == Field::Cell::Ship) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int ShipInitializer::ships_remained(Ship::Type shipType) {
+    int cnt = 0;
+    auto &shipPairSet = _ships[shipType];
+    for (auto &shipPair: shipPairSet) {
+        if (shipPair.second) {
+            ++cnt;
+        }
+    }
+    return cnt;
+}
+
+bool ShipInitializer::ship_is_placed() {
+    auto curShipIx = _curIndexes[_curType];
+    return !_ships[_curType][curShipIx].second;
+}
+
+void ShipInitializer::_switch_to_next_ship() {
+    auto shipType = _curType;
+    auto shipIx = _curIndexes[_curType];
+
 }

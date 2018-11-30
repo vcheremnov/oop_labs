@@ -8,6 +8,9 @@ class GameModel;
 
 class ShipInitializer {
 public:
+    enum ShiftDirection {
+        Up, Down, Left, Right
+    };
     const std::size_t SHIP1_NUM = 4;
     const std::size_t SHIP2_NUM = 3;
     const std::size_t SHIP3_NUM = 2;
@@ -16,15 +19,24 @@ public:
     ShipInitializer(GameModel*);
     void start_initialization(ActivePlayer);
     // interaction
+    int ships_remained(Ship::Type);
     void next_type();
     void prev_type();
     void next_ship();
     void prev_ship();
-    Ship &current_ship();
+    // ship actions
+    void shift_ship(ShiftDirection);
+    void rotate_ship();
     void set_ship();
     void reset_ship();
+    // info
+    const Ship &current_ship();
+    bool ship_is_placed();
     bool placementDone();
+    bool ship_is_overlapping();
 private:
+    Ship &_current_ship();
+    void _switch_to_next_ship();
     GameModel *_model = nullptr;
     ActivePlayer _curPlayer;
     Ship::Type _curType;

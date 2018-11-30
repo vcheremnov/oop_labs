@@ -36,12 +36,9 @@ void GameModel::_init_fields() {
     _fieldPairs[ActivePlayer::Player2].second.clear(Field::Cell::Unknown);
 }
 
-bool GameModel::_place_ship(const Ship &ship) {
-    if (is_overlapping(ship)) {
-        return false;
-    }
+void GameModel::_place_ship(const Ship &ship) {
     _ships[_activePlayer].push_back(ship);
-    auto coordinates = ship.get_coordinates();
+    auto coordinates = ship.get_body();
     for (auto &posPair: coordinates) {
         auto &field = _fieldPairs[_activePlayer].first;
         field.set_cell_type(posPair.first, posPair.second, Field::Cell::Ship);
@@ -50,22 +47,11 @@ bool GameModel::_place_ship(const Ship &ship) {
 
 void GameModel::_remove_ship(const Ship &ship) {
     _ships[_activePlayer].remove(ship);
-    auto coordinates = ship.get_coordinates();
+    auto coordinates = ship.get_body();
     for (auto &posPair: coordinates) {
         auto &field = _fieldPairs[_activePlayer].first;
         field.set_cell_type(posPair.first, posPair.second, Field::Cell::Empty);
     }
-}
-
-bool GameModel::is_overlapping(const Ship &ship) {
-    auto coordinates = ship.get_coordinates();
-    for (auto &posPair: coordinates) {
-        auto &field = _fieldPairs[_activePlayer].first;
-        if (field.get_cell_type(posPair.first, posPair.second) == Field::Cell::Ship) {
-            return true;
-        }
-    }
-    return false;
 }
 
 bool GameModel::accept_choice() {

@@ -32,6 +32,9 @@ public:
     ~ConsoleView() override;
     void show() override;
 private:
+    // private methods
+    void _init_colors();
+    // data
     std::unique_ptr<ConsoleWindow> _consoleWin;
     std::map<GameState, std::unique_ptr<ConsoleScreen>> _screens;
 };

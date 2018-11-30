@@ -31,13 +31,10 @@ private:
     std::string _playerName;
 };
 
-enum class ShiftDirection {
-    Left, Right, Up, Down
-};
-
 class GameModel {
 public:
     friend class ShipInitializer;
+    using FieldPair = std::pair<Field, Field>;
     // constructor
     GameModel();
     // menu selection
@@ -82,11 +79,14 @@ public:
     ActivePlayer get_active_player()
         { return _activePlayer; }
     // field
-    void change_pos(ShiftDirection);
+    const FieldPair &get_field_pair() const
+        { return _fieldPairs.at(_activePlayer); }
     void make_shot();
     // ships placement
     bool is_overlapping(const Ship&);
     bool accept_choice();
+    ShipInitializer &ship_initializer()
+        { return _shipInitializer; }
 // view
     void notify_views() {
         for (auto &view: _views) {
@@ -109,9 +109,8 @@ private:
     void _next_player();
     // ship initialization
     void _init_fields();
-    bool _place_ship(const Ship&);
+    void _place_ship(const Ship&);
     void _remove_ship(const Ship&);
-    using FieldPair = std::pair<Field, Field>;
     std::map<ActivePlayer, FieldPair> _fieldPairs;
     using ShipList = std::list<Ship>;
     std::map<ActivePlayer, ShipList> _ships;

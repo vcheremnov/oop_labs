@@ -15,10 +15,14 @@ KeyCode int_to_keycode(int code) {
         return KeyCode::KeyLEFT;
     case KEY_RIGHT:
         return KeyCode::KeyRIGHT;
-    case KEY_STAB:
-        return KeyCode::KeySTAB;
-    case 'n':
-        return KeyCode::KeyF5;
+    case '\t':
+        return KeyCode::KeyTAB;
+    case 'q': case 'Q':
+        return KeyCode::KeyQ;
+    case 'e': case 'E':
+        return KeyCode::KeyE;
+    case 'z': case 'Z':
+        return KeyCode::KeyZ;
     case ' ':
         return KeyCode::KeySPACE;
     case '\n':

@@ -16,9 +16,11 @@ enum class KeyCode {
     KeyLEFT,
     KeyRIGHT,
     KeyENTER,
-    KeySTAB,
+    KeyTAB,
     KeySPACE,
-    KeyF5,
+    KeyQ,
+    KeyE,
+    KeyZ,
     KeyUNKNOWN
 };
 

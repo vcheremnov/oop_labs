@@ -5,8 +5,10 @@
 void ConsoleScreen::render(GameModel *model) {
     // draw background
     auto window = _get_console_window();
+    // temporary auto resize fix
+    window->resize(window->get_width(), window->get_height());
     window->clear();
-    window->print_text(_get_background().c_str());
+    window->print_text("%s", _get_background().c_str());
     window->draw_border();
     window->refresh();
     // draw objects

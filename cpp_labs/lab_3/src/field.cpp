@@ -8,3 +8,8 @@ void Field::clear(Cell cellType) {
         std::fill(row.begin(), row.end(), cellType);
     }
 }
+
+bool Field::is_valid_pos(pos row, pos col) {
+    return (row >= 0) && (row < Field::HEIGHT) &&
+           (col >= 0) && (col < Field::WIDTH);
+}

@@ -28,6 +28,7 @@ Ship::Ship(Type shipType): _shipType(shipType) {
                   {ShipCell(0, 2)}, {ShipCell(0, 3)} };
         break;
     }
+    _init_periphery();
     _bodyCondition.assign(_body.size(), true);
 }
 
@@ -49,74 +50,65 @@ bool Ship::is_destroyed() const {
     return true;
 }
 
-bool Ship::is_overlapped_by(const Ship &ship) const {
-    for (auto &shipCell: ship._body) {
-        for (auto &cell: _body) {
-            if (shipCell == cell) {
-                return true;
-            }
-        }
+bool Ship::_rotate() {
+    if (_shipType == Ship::Type::Ship1) {
+        return false;
     }
-    return false;
-}
-
-void Ship::rotate() {
-    // rotate
     auto centerIx = _centerIndexes.at(_shipType);
-    for (auto ix = 0u; ix < _body.size(); ++ix) {
-        auto posX = _body[ix].second;
+    auto &centralCell = _body[centerIx];
+    // rotate body
+    for (auto &cell: _body) {
+        auto posX = cell.second;
         // x = x_c - (y - y_c)
-        _body[ix].second = _body[centerIx].second + _body[centerIx].first - _body[ix].first;
+        cell.second = centralCell.second + centralCell.first - cell.first;
         // y = y_c + (x - x_c)
-        _body[ix].first = _body[centerIx].first + posX - _body[centerIx].second;
+        cell.first = centralCell.first + posX - centralCell.second;
+    }
+    // rotate periphery
+    for (auto &cell: _shipPeriphery) {
+        auto posX = cell.second;
+        // x = x_c - (y - y_c)
+        cell.second = centralCell.second + centralCell.first - cell.first;
+        // y = y_c + (x - x_c)
+        cell.first = centralCell.first + posX - centralCell.second;
     }
     // correct position if ship crosses the border
     _correct_position();
+    return true;
 }
 
-bool Ship::shift(ShiftDirection direction) {
-    auto bodyCopy = _body;
-    switch (direction) {
-    case ShiftDirection::Left:
-        _shift_left(bodyCopy);
-        break;
-    case ShiftDirection::Up:
-        _shift_up(bodyCopy);
-        break;
-    case ShiftDirection::Right:
-        _shift_right(bodyCopy);
-        break;
-    case ShiftDirection::Down:
-        _shift_down(bodyCopy);
-        break;
-    }
-    if (_check_validity_of(bodyCopy)) {
-        _body = bodyCopy;
-        return true;
-    }
-    return false;
-}
-
-void Ship::_shift_left(ShipBody &body) {
+void Ship::_shift_left(ShipBody &body, ShipPeriphery &periphery) {
     for (auto &cell: body) {
+        --cell.second;
+    }
+    for (auto &cell: periphery) {
         --cell.second;
     }
 }
 
-void Ship::_shift_up(ShipBody &body) {
+void Ship::_shift_up(ShipBody &body, ShipPeriphery &periphery) {
     for (auto &cell: body) {
+        --cell.first;
+    }
+    for (auto &cell: periphery) {
         --cell.first;
     }
 }
 
-void Ship::_shift_right(ShipBody &body) {
+void Ship::_shift_right(ShipBody &body, ShipPeriphery &periphery) {
     for (auto &cell: body) {
+        ++cell.second;
+    }
+    for (auto &cell: periphery) {
         ++cell.second;
     }
 }
 
-void Ship::_shift_down(ShipBody &body) {
+void Ship::_shift_down(ShipBody &body, ShipPeriphery &periphery) {
     for (auto &cell: body) {
+        ++cell.first;
+    }
+    for (auto &cell: periphery) {
         ++cell.first;
     }
 }
@@ -124,53 +116,86 @@ void Ship::_shift_down(ShipBody &body) {
 void Ship::_correct_position() {
     for (auto &cell: _body) {
         while (cell.second < 0) {
-            _shift_right(_body);
+            _shift_right(_body, _shipPeriphery);
         }
         while (cell.second >= Field::WIDTH) {
-            _shift_left(_body);
+            _shift_left(_body, _shipPeriphery);
         }
         while (cell.first < 0) {
-            _shift_down(_body);
+            _shift_down(_body, _shipPeriphery);
         }
         while (cell.first >= Field::HEIGHT) {
-            _shift_up(_body);
+            _shift_up(_body, _shipPeriphery);
         }
     }
 }
 
+void Ship::_init_periphery() {
+    // initially ship is horizontal and was not rotated
+    auto leftCell = _body.front(); --leftCell.second;
+    auto rightCell = _body.back(); ++rightCell.second;
+    auto topCell = leftCell; --topCell.first;
+    auto bottomCell = leftCell; ++bottomCell.first;
+    // add top & bottom cells
+    for (auto i = 0u; i < _body.size() + 2; ++i) {
+        _shipPeriphery.push_back(topCell);
+        _shipPeriphery.push_back(bottomCell);
+        // shift top & bottom cells
+        ++topCell.second;
+        ++bottomCell.second;
+    }
+    // add side cells
+    _shipPeriphery.push_back(leftCell);
+    _shipPeriphery.push_back(rightCell);
+}
+
 bool Ship::_check_validity_of(const ShipBody &body) {
     for (auto &cell: body) {
-        if (cell.first < 0 || cell.first >= Field::HEIGHT ||
-                cell.second < 0 || cell.second >= Field::WIDTH) {
+        if (!Field::is_valid_pos(cell.first, cell.second)) {
             return false;
         }
     }
     return true;
 }
 
-bool Ship::is_horizontal() {
-    if (_shipType == Type::Ship1) {
-        return true;
-    }
-    auto centerIx = _centerIndexes.at(_shipType);
-    // there is at least one cell standing after the central cell
-    return _body[centerIx].first == _body[centerIx + 1].first;
+void Ship::_set_body(const ShipBody &body, const ShipPeriphery &periphery) {
+    _body = body;
+    _shipPeriphery = periphery;
 }
 
-bool Ship::is_vertical() {
-    if (_shipType == Type::Ship1) {
-        return true;
+bool Ship::is_horizontal() const {
+    return _body.front().first == _body.back().first;
+}
+
+bool Ship::is_vertical() const {
+    return _body.front().second == _body.back().second;
+}
+
+Ship::Type &operator++(Ship::Type &type) {
+    if (type == Ship::Type::Total) {
+        type = Ship::Type::Ship1;
     }
-    auto centerIx = _centerIndexes.at(_shipType);
-    // there is at least one cell standing after the central cell
-    return _body[centerIx].second == _body[centerIx + 1].second;
+    else {
+        type = static_cast<Ship::Type>(static_cast<int>(type) + 1);
+    }
+    return type;
+}
+
+Ship::Type &operator--(Ship::Type &type) {
+    if (type == Ship::Type::Ship1) {
+        type = Ship::Type::Total;
+    }
+    else {
+        type = static_cast<Ship::Type>(static_cast<int>(type) - 1);
+    }
+    return type;
 }
 
 // friends
 
 bool operator==(const Ship &ship1, const Ship &ship2) {
-    const auto &body1 = ship1.get_coordinates();
-    const auto &body2 = ship2.get_coordinates();
+    const auto &body1 = ship1.get_body();
+    const auto &body2 = ship2.get_body();
     if (body1.size() != body2.size()) {
         return false;
     }

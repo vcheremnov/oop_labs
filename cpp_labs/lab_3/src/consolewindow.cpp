@@ -1,6 +1,7 @@
 #include "consolewindow.h"
 #include <ncurses.h>
 #include <stdexcept>
+#include <cstdarg>
 
 namespace {
 
@@ -25,26 +26,13 @@ decltype(A_BOLD) TextAttr_to_A(TextAttr attr) {
 
 // constructors & destructor
 
-ConsoleWindow::ConsoleWindow() {
-    _win = stdscr;
-    getmaxyx(_win, _height, _width);
-}
-
 ConsoleWindow::ConsoleWindow(size_type width, size_type height, pos line, pos col):
     _win(newwin(height, width, line, col)) {
     getmaxyx(_win, _height, _width);
 }
 
-ConsoleWindow::ConsoleWindow(ConsoleWindow &win, size_type width, size_type height,
-                             pos line, pos col):
-    _win(subwin(win._win, height, width, line, col)) {
-    getmaxyx(_win, _height, _width);
-}
-
 ConsoleWindow::~ConsoleWindow() {
-    if (_win != stdscr) {
-        delwin(_win);
-    }
+    delwin(_win);
 }
 
 // public methods
@@ -73,12 +61,20 @@ void ConsoleWindow::add_character_at(pos line, pos col, const chtype ch) {
     mvwaddch(_win, line, col, ch);
 }
 
-void ConsoleWindow::print_text(const char *text) {
-    wprintw(_win, "%s", text);
+void ConsoleWindow::print_text(const char *text, ...) {
+    va_list args;
+    va_start(args, text);
+    vw_printw(_win, text, args);
+    va_end(args);
 }
 
-void ConsoleWindow::print_text_at(pos line, pos col, const char *text) {
-    mvwprintw(_win, line, col, "%s", text);
+void ConsoleWindow::print_text_at(pos line, pos col, const char *text, ...) {
+    move_cursor(line, col);
+    va_list args;
+    va_start(args, text);
+    vw_printw(_win, text, args);
+    va_end(args);
+
 }
 
 void ConsoleWindow::set_attributes(const std::initializer_list<TextAttr> &attrList) {
@@ -91,6 +87,18 @@ void ConsoleWindow::reset_attributes(const std::initializer_list<TextAttr> &attr
     for (auto &attr: attrList) {
         wattroff(_win, TextAttr_to_A(attr));
     }
+}
+
+void ConsoleWindow::set_color_pair(TextColor colorPair) {
+    _colorPair = static_cast<int>(colorPair);
+    wattron(_win, COLOR_PAIR(_colorPair));
+}
+
+void ConsoleWindow::reset_color_pair() {
+    if (_colorPair != -1) {
+        wattroff(_win, COLOR_PAIR(_colorPair));
+    }
+    _colorPair = -1;
 }
 
 // move & resize

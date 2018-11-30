@@ -3,8 +3,8 @@
 class Window {
 public:
     // type names
-    using pos = int;
-    using size_type = int;
+    using pos = long;
+    using size_type = long;
     // constructors
     virtual ~Window() = default;
     // public methods

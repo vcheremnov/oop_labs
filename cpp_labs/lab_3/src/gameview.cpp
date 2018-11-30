@@ -22,22 +22,38 @@ void GameView::update(GameModel *model) {
 ConsoleView::ConsoleView(GameModel *model):
     GameView (model) {
     // init ncurses
-//    use_env(true);
     initscr();
-    cbreak();
     noecho();
     keypad(stdscr, true);
     curs_set(0);
+    // turn on colors
+    if (!has_colors()) {
+        throw std::runtime_error("Terminal doesn't support colors!");
+    }
+    start_color();
+    _init_colors();
+    // fix ncurses bug:
+    // clearing the screen by getch() when used for the first time
+    halfdelay(1);
+    getch();
+    cbreak();
     // "create" main window
-    _consoleWin = std::make_unique<ConsoleWindow>();
-    // resize main window
-    _consoleWin->resize(CONSOLE_WIDTH, CONSOLE_HEIGHT);
+    wresize(stdscr, CONSOLE_HEIGHT, CONSOLE_WIDTH);
+    _consoleWin.reset(new ConsoleWindow(ConsoleView::CONSOLE_WIDTH,
+                                        ConsoleView::CONSOLE_HEIGHT, 0, 0));
     // init screens
     ScreenFactory::instance().get_all_screens(_screens);
     for (auto &mapItem: _screens) {
         mapItem.second->set_console_window(_consoleWin.get());
     }
 }
+
+void ConsoleView::_init_colors() {
+    init_pair(static_cast<short>(TextColor::RED_ON_BLACK), COLOR_RED, COLOR_BLACK);
+    init_pair(static_cast<short>(TextColor::GREEN_ON_BLACK), COLOR_GREEN, COLOR_BLACK);
+    init_pair(static_cast<short>(TextColor::BLUE_ON_BLACK), COLOR_BLUE, COLOR_BLACK);
+}
+
 
 ConsoleView::~ConsoleView() {
     endwin();
