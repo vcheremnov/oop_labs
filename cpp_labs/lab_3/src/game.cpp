@@ -104,10 +104,10 @@ void Game::run() {
 
 void Game::_switch_active_player() {
     switch (_model->get_active_player()) {
-    case ActivePlayer::Player1:
+    case PlayerNumber::Player1:
         _activePlayer = _humanPlayer;
         break;
-    case ActivePlayer::Player2:
+    case PlayerNumber::Player2:
         _activePlayer = _botPlayer;
         break;
     }

@@ -9,12 +9,11 @@ ShipInitializer::ShipInitializer(GameModel *model): _model(model) {
     }
 }
 
-void ShipInitializer::start_initialization(ActivePlayer player) {
+void ShipInitializer::start_initialization() {
     const static auto shipPair1 = std::pair<Ship, bool>(Ship(Ship::Type::Ship1), true);
     const static auto shipPair2 = std::pair<Ship, bool>(Ship(Ship::Type::Ship2), true);
     const static auto shipPair3 = std::pair<Ship, bool>(Ship(Ship::Type::Ship3), true);
     const static auto shipPair4 = std::pair<Ship, bool>(Ship(Ship::Type::Ship4), true);
-    _curPlayer = player;
     // add ship pairs
     _ships[Ship::Type::Ship1] = std::vector<ShipInitPair>(SHIP1_NUM, shipPair1);
     _ships[Ship::Type::Ship2] = std::vector<ShipInitPair>(SHIP2_NUM, shipPair2);
@@ -25,6 +24,8 @@ void ShipInitializer::start_initialization(ActivePlayer player) {
     _curIndexes[Ship::Type::Ship2] = 0;
     _curIndexes[Ship::Type::Ship3] = 0;
     _curIndexes[Ship::Type::Ship4] = 0;
+    // reset initial ship type
+    _curType = Ship::Type::Ship1;
 }
 
 void ShipInitializer::next_type() {

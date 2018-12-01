@@ -17,7 +17,7 @@ public:
     const std::size_t SHIP4_NUM = 1;
     // initialization
     ShipInitializer(GameModel*);
-    void start_initialization(ActivePlayer);
+    void start_initialization();
     // interaction
     int ships_remained(Ship::Type);
     void next_type();
@@ -38,7 +38,6 @@ private:
     Ship &_current_ship();
     void _switch_to_next_ship();
     GameModel *_model = nullptr;
-    ActivePlayer _curPlayer;
     Ship::Type _curType;
     using ShipInitPair = std::pair<Ship, bool>;
     std::map<Ship::Type, std::vector<ShipInitPair>> _ships;

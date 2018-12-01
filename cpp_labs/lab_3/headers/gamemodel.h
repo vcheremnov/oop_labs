@@ -15,6 +15,7 @@
 #include "gamestate.h"
 #include "menuselector.h"
 #include "shipinitializer.h"
+#include "movemaker.h"
 
 // human player stats
 class PlayerStats {
@@ -34,12 +35,10 @@ private:
 class GameModel {
 public:
     friend class ShipInitializer;
+    friend class MoveMaker;
     using FieldPair = std::pair<Field, Field>;
     // constructor
     GameModel();
-    // menu selection
-    MenuSelector &menu_selector()
-        { return _menuSelector; }
     // view
     void attach_view(GameView *view) {
         if (view == nullptr) {
@@ -57,9 +56,9 @@ public:
     }
     void start_ship_init() {
         _state = GameState::ShipPlacement;
-        _activePlayer = ActivePlayer::Player1;
+        _activePlayer = PlayerNumber::Player1;
         _init_fields();
-        _shipInitializer.start_initialization(_activePlayer);
+        _shipInitializer.start_initialization();
         notify_views();
     }
     void start_game() {
@@ -76,8 +75,11 @@ public:
         { return _state == GameState::QuitScreen; }
     GameState get_game_state()
         { return _state; }
-    ActivePlayer get_active_player()
+    PlayerNumber get_active_player()
         { return _activePlayer; }
+    PlayerNumber get_inactive_player()
+        { return _inactivePlayer; }
+    const std::string &get_player_name(PlayerNumber);
     // field
     const FieldPair &get_field_pair() const
         { return _fieldPairs.at(_activePlayer); }
@@ -85,8 +87,18 @@ public:
     // ships placement
     bool is_overlapping(const Ship&);
     bool accept_choice();
+
+    // Model components //
+
+    // menu selection
+    MenuSelector &menu_selector()
+        { return _menuSelector; }
+    // ship initializer
     ShipInitializer &ship_initializer()
         { return _shipInitializer; }
+    // move maker
+    MoveMaker &move_maker()
+        { return _moveMaker; }
 // view
     void notify_views() {
         for (auto &view: _views) {
@@ -104,18 +116,23 @@ private:
     bool _gameStarted = false;
     // views
     std::list<GameView*> _views;
-    // active player
-    ActivePlayer _activePlayer;
+    // active/inactive players
+    std::string _playerName1 = "Player1";
+    std::string _playerName2 = "Player2";
+    PlayerNumber _activePlayer = PlayerNumber::Player1;
+    PlayerNumber _inactivePlayer = PlayerNumber::Player2;
     void _next_player();
     // ship initialization
     void _init_fields();
     void _place_ship(const Ship&);
     void _remove_ship(const Ship&);
-    std::map<ActivePlayer, FieldPair> _fieldPairs;
+    std::map<PlayerNumber, FieldPair> _fieldPairs;
     using ShipList = std::list<Ship>;
-    std::map<ActivePlayer, ShipList> _ships;
-    // ship initializer
-    ShipInitializer _shipInitializer;
+    std::map<PlayerNumber, ShipList> _ships;
     // menu selector
     MenuSelector _menuSelector;
+    // ship initializer
+    ShipInitializer _shipInitializer;
+    // move maker
+    MoveMaker _moveMaker;
 };

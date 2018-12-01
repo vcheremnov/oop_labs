@@ -10,7 +10,7 @@ enum class GameState {
     QuitScreen
 };
 
-// active player
-enum class ActivePlayer {
+// player's number
+enum class PlayerNumber {
     Player1, Player2
 };

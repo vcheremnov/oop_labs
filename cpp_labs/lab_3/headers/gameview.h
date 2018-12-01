@@ -27,7 +27,7 @@ private:
 class ConsoleView: public GameView {
 public:
     static const int CONSOLE_WIDTH = 80;
-    static const int CONSOLE_HEIGHT = 24;
+    static const int CONSOLE_HEIGHT = 25;
     ConsoleView(GameModel*);
     ~ConsoleView() override;
     void show() override;

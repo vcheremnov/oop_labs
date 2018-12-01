@@ -8,7 +8,7 @@ class Field {
 public:
     // cell types
     enum class Cell {
-        Empty, ShipDestoryed, Ship, Miss, Unknown
+        Empty, ShipDestroyed, Ship, Miss, Unknown
     };
     // type names
     using size_type = long;
@@ -18,7 +18,7 @@ public:
     // static members
     static const size_type HEIGHT = 10, WIDTH = 10;
     // constructor
-    Field(): _map(HEIGHT, FieldRow(WIDTH, Cell::Empty)) {}
+    Field();
     // public methods
     const Map &get_field_map() const
         { return _map; }

@@ -13,8 +13,7 @@ using Option = MenuSelector::Option;
 
 class MenuBox: public ConsoleObject {
 public:
-    MenuBox(size_type width, size_type height, pos line, pos col):
-        ConsoleObject(width, height, line, col) {}
+    using ConsoleObject::ConsoleObject;
 protected:
     void _draw_object(GameModel*) override;
 };
@@ -29,7 +28,7 @@ void MenuBox::_draw_object(GameModel *model) {
         }
         optName = model->menu_selector().get_option_name(opt);
         window->print_text_at(line, (width - optName.size()) / 2, optName.c_str());
-        window->reset_attributes({TextAttr::Highlight});
+        window->reset_attributes();
         ++line;
     }
 }

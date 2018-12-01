@@ -27,6 +27,8 @@ Ship::Ship(Type shipType): _shipType(shipType) {
         _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)},
                   {ShipCell(0, 2)}, {ShipCell(0, 3)} };
         break;
+    default:
+        break;
     }
     _init_periphery();
     _bodyCondition.assign(_body.size(), true);
@@ -42,8 +44,8 @@ void Ship::hit_ship(const ShipCell &pos) {
 }
 
 bool Ship::is_destroyed() const {
-    for (auto cellIndex = 0u; cellIndex < _bodyCondition.size(); ++cellIndex) {
-        if (_bodyCondition[cellIndex]) {
+    for (auto cellIsOK: _bodyCondition) {
+        if (cellIsOK) {
             return false;
         }
     }

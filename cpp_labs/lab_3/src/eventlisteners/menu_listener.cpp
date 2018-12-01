@@ -43,6 +43,7 @@ void MenuListener::_select_action(Option option) {
     switch (option) {
     case Option::StartGame:
         _get_model()->start_ship_init();
+//        _get_model()->start_game();
         break;
     case Option::Quit:
         _get_model()->quit();

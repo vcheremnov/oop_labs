@@ -2,6 +2,7 @@
 
 #include "window.h"
 #include <memory>
+#include <set>
 #include <ncurses.h>
 
 enum class TextAttr {
@@ -41,6 +42,7 @@ public:
     void print_text_at(pos line, pos col, const char *text, ...);
     void set_attributes(const std::initializer_list<TextAttr>&);
     void reset_attributes(const std::initializer_list<TextAttr>&);
+    void reset_attributes();
     void set_color_pair(TextColor);
     void reset_color_pair();
     // move & resize
@@ -49,4 +51,5 @@ private:
     size_type _width = 0, _height = 0;
     WINDOW *_win = nullptr;
     int _colorPair = -1;
+    std::set<TextAttr> _attributes;
 };

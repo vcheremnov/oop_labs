@@ -29,18 +29,18 @@ void ShipPlacementListener::key_event_occurred(const KeyEvent &keyEvent) {
             shipInitializer.rotate_ship();
             break;
         case KeyCode::KeyENTER:
-            if (shipInitializer.placementDone()) {
-                model->accept_choice();
-            }
-            else {
-                shipInitializer.set_ship();
-            }
-            break;
+            shipInitializer.set_ship();
+            return;
         default:
             break;
         }
     }
     switch (keyEvent.get_keycode()) {
+    case KeyCode::KeyENTER:
+        if (shipInitializer.placementDone()) {
+            model->accept_choice();
+        }
+        break;
     case KeyCode::KeyE:
         shipInitializer.next_ship();
         break;

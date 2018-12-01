@@ -81,11 +81,20 @@ void ConsoleWindow::set_attributes(const std::initializer_list<TextAttr> &attrLi
     for (auto &attr: attrList) {
         wattron(_win, TextAttr_to_A(attr));
     }
+    _attributes.insert(attrList);
+}
+
+void ConsoleWindow::reset_attributes() {
+    for (auto &attr: _attributes) {
+        wattroff(_win, TextAttr_to_A(attr));
+    }
+    _attributes.clear();
 }
 
 void ConsoleWindow::reset_attributes(const std::initializer_list<TextAttr> &attrList) {
     for (auto &attr: attrList) {
         wattroff(_win, TextAttr_to_A(attr));
+        _attributes.erase(attr);
     }
 }
 
