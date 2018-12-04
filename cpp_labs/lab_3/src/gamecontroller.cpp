@@ -1,10 +1,30 @@
 #include "gamecontroller.h"
+#include "gamemodel.h"
 
-ConsoleController::ConsoleController(GameModel *model) {
+// game controller
+
+GameController::GameController(GameModel *model): _model(model) {
     if (model == nullptr) {
-        throw std::runtime_error("ConsoleController::ConsoleController():"
+        throw std::runtime_error("GameController::GameController():"
                                  "model is NULL");
     }
+}
+
+GameState GameController::get_game_state() {
+    return _get_model()->get_game_state();
+}
+
+ShipInitializer& GameController::get_ship_initializer() {
+    return _get_model()->ship_initializer();
+}
+
+MoveMaker& GameController::get_move_maker() {
+    return _get_model()->move_maker();
+}
+
+// console controller
+
+ConsoleController::ConsoleController(GameModel *model): GameController (model) {
     // init listeners
     ListenerFactory::instance().get_all_listeners(_listeners);
     // bind listeners to the model
@@ -13,15 +33,6 @@ ConsoleController::ConsoleController(GameModel *model) {
     }
 }
 
-void ConsoleController::switch_listener(GameState gameState) {
-    if (_get_human_player() == nullptr) {
-        throw std::runtime_error("ConsoleController::switch_listener():"
-                                 " human player is NULL");
-    }
-    if (_get_bot_player() == nullptr) {
-        throw std::runtime_error("ConsoleController::switch_listener():"
-                                 " bot player is NULL");
-    }
-    _get_human_player()->set_listener(_listeners[gameState].get());
-    _get_bot_player()->set_listener(_listeners[gameState].get());
+EventListener* ConsoleController::get_event_listener() {
+    return _listeners[get_game_state()].get();
 }

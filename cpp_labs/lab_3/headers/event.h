@@ -21,6 +21,7 @@ enum class KeyCode {
     KeyQ,
     KeyE,
     KeyZ,
+    KeyR,
     KeyUNKNOWN
 };
 

@@ -26,8 +26,6 @@ public:
         { return _lastMoveResult != MoveResult::NotMade; }
     bool move_is_valid() const;
     void proceed();
-//    //TEST
-//    void destroy();
 private:
     // private methods
     void _set_default_pos();

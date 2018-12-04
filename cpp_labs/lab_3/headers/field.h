@@ -13,6 +13,7 @@ public:
     // type names
     using size_type = long;
     using pos = long;
+    using FieldCell = std::pair<pos, pos>;
     using FieldRow = std::vector<Cell>;
     using Map = std::vector<FieldRow>;
     // static members

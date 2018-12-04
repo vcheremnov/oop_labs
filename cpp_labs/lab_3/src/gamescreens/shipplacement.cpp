@@ -20,7 +20,7 @@ const std::string AcceptButton::buttonText = "Start Game";
 
 void AcceptButton::_draw_object(GameModel *model) {
     auto window = _get_window();
-    if (model->ship_initializer().placementDone()) {
+    if (model->ship_initializer().placement_done()) {
         window->set_attributes({TextAttr::Highlight});
     }
     else {

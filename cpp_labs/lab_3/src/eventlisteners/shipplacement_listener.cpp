@@ -14,16 +14,16 @@ void ShipPlacementListener::key_event_occurred(const KeyEvent &keyEvent) {
     if (!shipInitializer.ship_is_placed()) {
         switch (keyEvent.get_keycode()) {
         case KeyCode::KeyLEFT:
-            shipInitializer.shift_ship(ShipInitializer::ShiftDirection::Left);
+            shipInitializer.shift_ship(Ship::ShiftDirection::Left);
             break;
         case KeyCode::KeyUP:
-            shipInitializer.shift_ship(ShipInitializer::ShiftDirection::Up);
+            shipInitializer.shift_ship(Ship::ShiftDirection::Up);
             break;
         case KeyCode::KeyRIGHT:
-            shipInitializer.shift_ship(ShipInitializer::ShiftDirection::Right);
+            shipInitializer.shift_ship(Ship::ShiftDirection::Right);
             break;
         case KeyCode::KeyDOWN:
-            shipInitializer.shift_ship(ShipInitializer::ShiftDirection::Down);
+            shipInitializer.shift_ship(Ship::ShiftDirection::Down);
             break;
         case KeyCode::KeySPACE:
             shipInitializer.rotate_ship();
@@ -37,8 +37,8 @@ void ShipPlacementListener::key_event_occurred(const KeyEvent &keyEvent) {
     }
     switch (keyEvent.get_keycode()) {
     case KeyCode::KeyENTER:
-        if (shipInitializer.placementDone()) {
-            model->accept_choice();
+        if (shipInitializer.placement_done()) {
+            shipInitializer.accept_choice();
         }
         break;
     case KeyCode::KeyE:
@@ -46,6 +46,9 @@ void ShipPlacementListener::key_event_occurred(const KeyEvent &keyEvent) {
         break;
     case KeyCode::KeyQ:
         shipInitializer.prev_ship();
+        break;
+    case KeyCode::KeyR:
+        shipInitializer.random_initialization();
         break;
     case KeyCode::KeyTAB:
         shipInitializer.next_type();

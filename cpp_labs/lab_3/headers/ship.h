@@ -9,20 +9,28 @@ public:
     enum class Type {
         Ship1, Ship2, Ship3, Ship4, Total
     };
-    Ship(Type);
+    enum class Orientation {
+        Vertical, Horizontal
+    };
+    enum class ShiftDirection {
+        Left, Right, Up, Down
+    };
+    Ship(Type shipType, Orientation orientation = Orientation::Horizontal);
     // left pos <=> y, right pos <=> x
     using ShipCell = std::pair<Field::pos, Field::pos>;
     using ShipBody = std::vector<ShipCell>;
     using ShipPeriphery = std::vector<ShipCell>;
     void hit_ship(const ShipCell&);
+    bool shift_ship(ShiftDirection);
+    bool rotate_ship();
     bool is_destroyed() const;
-    // test
     const ShipBody &get_body() const
         { return _body; }
     const ShipPeriphery &get_periphery() const
         { return _shipPeriphery; }
     Type get_type() const
         { return _shipType; }
+    bool has_intersection_with(const Ship&);
     bool is_horizontal() const;
     bool is_vertical() const;
     // friends
@@ -35,8 +43,8 @@ private:
     std::vector<bool> _bodyCondition;
     const static std::map<Type, std::size_t> _centerIndexes;
     // private methods
-    bool _rotate();
-    void _init_periphery();
+    void _init_periphery(Orientation);
+    void _init_body(Type, Orientation);
     void _correct_position();
     void _set_body(const ShipBody&, const ShipPeriphery&);
     static void _shift_left(ShipBody&, ShipPeriphery&);

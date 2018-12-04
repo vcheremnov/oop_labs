@@ -23,8 +23,20 @@ GameModel::GameModel():
     _init_fields();
 }
 
+// view
+
+void GameModel::attach_view(GameView *view) {
+    if (view == nullptr) {
+        throw std::runtime_error("VIEW IS NULL...");
+    }
+    _views.push_back(view);
+}
+void GameModel::detach_view(GameView *view) {
+    _views.remove(view);
+}
+
 void GameModel::_next_player() {
-//    std::swap(_activePlayer, _inactivePlayer);
+    std::swap(_activePlayer, _inactivePlayer);
 }
 
 void GameModel::_init_fields() {
@@ -53,24 +65,6 @@ void GameModel::_remove_ship(const Ship &ship) {
         auto &field = _fieldPairs[_activePlayer].first;
         field.set_cell_type(posPair.first, posPair.second, Field::Cell::Empty);
     }
-}
-
-bool GameModel::accept_choice() {
-    if (!_shipInitializer.placementDone()) {
-        return false;
-    }
-    _next_player();
-    if (_activePlayer == PlayerNumber::Player1) {
-        start_game();
-
-        // TEST
-        _fieldPairs[_inactivePlayer] = _fieldPairs[_activePlayer];
-        _ships[_inactivePlayer] = _ships[_activePlayer];
-    }
-    else {
-        _shipInitializer.start_initialization();
-    }
-    return true;
 }
 
 const std::string &GameModel::get_player_name(PlayerNumber player) {

@@ -1,35 +1,32 @@
 #pragma once
 
-#include "gameview.h"
 #include "gamestate.h"
 #include "eventlistener.h"
-#include "player.h"
 #include <memory>
+#include "movemaker.h"
+#include "shipinitializer.h"
 
 class GameModel;
 
 class GameController {
 public:
+    GameController(GameModel*);
     virtual ~GameController() = default;
-    virtual void switch_listener(GameState) = 0;
-    void bind_to_human_player(HumanPlayer *player)
-        { _humanPlayer = player; }
-    void bind_to_bot_player(BotPlayer *player)
-        { _botPlayer = player; }
+    GameState get_game_state();
+    ShipInitializer &get_ship_initializer();
+    MoveMaker &get_move_maker();
+    virtual EventListener *get_event_listener() = 0;
 protected:
-    HumanPlayer *_get_human_player()
-        { return _humanPlayer; }
-    BotPlayer *_get_bot_player()
-        { return _botPlayer; }
+    GameModel *_get_model()
+        { return _model; }
 private:
-    HumanPlayer *_humanPlayer = nullptr;
-    BotPlayer *_botPlayer = nullptr;
+    GameModel *_model = nullptr;
 };
 
 class ConsoleController: public GameController {
 public:
     ConsoleController(GameModel*);
-    void switch_listener(GameState) override;
+    EventListener *get_event_listener() override;
 private:
     // handlers registry
     std::map<GameState, std::unique_ptr<EventListener>> _listeners;

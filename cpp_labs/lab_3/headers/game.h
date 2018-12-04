@@ -20,12 +20,13 @@ public:
 private:
     // private methods
     void _switch_active_player();
+    void _create_players();
     // private data
     std::unique_ptr<GameModel> _model;
     std::unique_ptr<GameView> _view;
     std::unique_ptr<GameController> _controller;
-    std::shared_ptr<HumanPlayer> _humanPlayer;
-    std::shared_ptr<BotPlayer> _botPlayer;
+    std::unique_ptr<HumanPlayer> _UIuser;
+    std::shared_ptr<Player> _player1, _player2;
     std::shared_ptr<Player> _activePlayer;
 };
 

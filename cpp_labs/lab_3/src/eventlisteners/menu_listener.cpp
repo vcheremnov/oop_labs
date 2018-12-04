@@ -22,13 +22,39 @@ void MenuListener::key_event_occurred(const KeyEvent &keyPress) {
         _get_model()->menu_selector().next_option();
         break;
     case KeyCode::KeyLEFT:
-        if (option == Option::Difficulty) {
+        switch (option) {
+        case Option::Difficulty:
             _get_model()->menu_selector().prev_difficulty();
+            break;
+        case Option::GameMode:
+            _get_model()->menu_selector().prev_gamemode();
+            break;
+        case Option::AI_level_1:
+            _get_model()->menu_selector().prev_AI_level_first();
+            break;
+        case Option::AI_level_2:
+            _get_model()->menu_selector().prev_AI_level_second();
+            break;
+        default:
+            break;
         }
         break;
     case KeyCode::KeyRIGHT:
-        if (option == Option::Difficulty) {
+        switch (option) {
+        case Option::Difficulty:
             _get_model()->menu_selector().next_difficulty();
+            break;
+        case Option::GameMode:
+            _get_model()->menu_selector().next_gamemode();
+            break;
+        case Option::AI_level_1:
+            _get_model()->menu_selector().next_AI_level_first();
+            break;
+        case Option::AI_level_2:
+            _get_model()->menu_selector().next_AI_level_second();
+            break;
+        default:
+            break;
         }
         break;
     case KeyCode::KeyENTER:

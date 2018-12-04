@@ -40,21 +40,15 @@ public:
     // constructor
     GameModel();
     // view
-    void attach_view(GameView *view) {
-        if (view == nullptr) {
-            throw std::runtime_error("VIEW IS NULL...");
-        }
-        _views.push_back(view);
-    }
-    void detach_view(GameView *view) {
-        _views.remove(view);
-    }
+    void attach_view(GameView*);
+    void detach_view(GameView*);
     // game state
     void go_to_menu() {
         _state = GameState::MenuSelect;
         notify_views();
     }
     void start_ship_init() {
+        _gameStarted = true;
         _state = GameState::ShipPlacement;
         _activePlayer = PlayerNumber::Player1;
         _init_fields();
@@ -62,6 +56,7 @@ public:
         notify_views();
     }
     void start_game() {
+        _gameStarted = true;
         _state = GameState::Battle;
         notify_views();
     }
@@ -83,11 +78,8 @@ public:
     // field
     const FieldPair &get_field_pair() const
         { return _fieldPairs.at(_activePlayer); }
-    void make_shot();
     // ships placement
     bool is_overlapping(const Ship&);
-    bool accept_choice();
-
     // Model components //
 
     // menu selection

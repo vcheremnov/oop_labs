@@ -1,5 +1,6 @@
 #include "game.h"
 #include "gamemodel.h"
+#include "menuselector.h"
 #include <map>
 
 // game factory
@@ -71,12 +72,8 @@ Game::Game(GameType gameType):
 
     // register view as model's observer
     _model->attach_view(_view.get());
-    // players (KOSTYYYYYL)
-    _humanPlayer = std::make_shared<HumanPlayer>();
-    _botPlayer = std::make_shared<BotPlayer>();
-    // bind players to the controller
-    _controller->bind_to_human_player(_humanPlayer.get());
-    _controller->bind_to_bot_player(_botPlayer.get());
+    // create UI user
+    _UIuser = std::make_unique<HumanPlayer>(_controller.get());
 }
 
 void Game::run() {
@@ -84,7 +81,6 @@ void Game::run() {
     _view->show();
     // game loop
     while (!_model->is_quit()) {
-        _controller->switch_listener(_model->get_game_state());
         if (_model->game_started()) {
             // check active player & switch
             _switch_active_player();
@@ -93,22 +89,46 @@ void Game::run() {
         }
         else {
             // wait event from the ui user
-            _humanPlayer->wait_event();
+            _UIuser->wait_event();
+            if (_model->game_started()) {
+                _create_players();
+            }
         }
         // rendering
         _view->show();
     }
     // quit screen
-    _humanPlayer->wait_event();
+    _UIuser->wait_event();
 }
 
 void Game::_switch_active_player() {
     switch (_model->get_active_player()) {
     case PlayerNumber::Player1:
-        _activePlayer = _humanPlayer;
+        _activePlayer = _player1;
         break;
     case PlayerNumber::Player2:
-        _activePlayer = _botPlayer;
+        _activePlayer = _player2;
+        break;
+    }
+}
+
+void Game::_create_players() {
+    auto &menuSelector = _model->menu_selector();
+    auto &botFactory = BotFactory::instance();
+    switch (menuSelector.get_gamemode()) {
+    case GameMode::Player_vs_Bot:
+        _player1.reset(new HumanPlayer(_controller.get()));
+        _player2.reset(botFactory.get_bot_player(menuSelector.get_difficulty(), _controller.get()));
+        break;
+    case GameMode::Player_vs_Player:
+        _player1.reset(new HumanPlayer(_controller.get()));
+        _player2.reset(new HumanPlayer(_controller.get()));
+        break;
+    case GameMode::Bot_vs_Bot:
+        _player1.reset(botFactory.get_bot_player(menuSelector.get_AI_level_first(), _controller.get()));
+        _player2.reset(botFactory.get_bot_player(menuSelector.get_AI_level_second(), _controller.get()));
+        break;
+    default:
         break;
     }
 }

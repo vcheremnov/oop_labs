@@ -119,7 +119,6 @@ void BattleBoard::_draw_field_cells(const Field &field) {
             auto posY = Board::CELL_HEIGHT * rowIx + startY;
             switch (fieldMap[rowIx][colIx]) {
             case Field::Cell::Unknown:
-//                window->add_character_at(posY, posX, ACS_CKBOARD);
                 break;
             case Field::Cell::Ship:
                 window->add_character_at(posY, posX, ACS_BOARD);

@@ -11,26 +11,9 @@ const std::map<Ship::Type, std::size_t> Ship::_centerIndexes =
     {Type::Ship4, 1}
 };
 
-Ship::Ship(Type shipType): _shipType(shipType) {
-    switch (shipType) {
-    case Type::Ship1:
-        _body = { {ShipCell(0, 0)} };
-        break;
-    case Type::Ship2:
-        _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)} };
-        break;
-    case Type::Ship3:
-        _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)},
-                  {ShipCell(0, 2)} };
-        break;
-    case Type::Ship4:
-        _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)},
-                  {ShipCell(0, 2)}, {ShipCell(0, 3)} };
-        break;
-    default:
-        break;
-    }
-    _init_periphery();
+Ship::Ship(Type shipType, Orientation orientation): _shipType(shipType) {
+    _init_body(shipType, orientation);
+    _init_periphery(orientation);
     _bodyCondition.assign(_body.size(), true);
 }
 
@@ -52,7 +35,7 @@ bool Ship::is_destroyed() const {
     return true;
 }
 
-bool Ship::_rotate() {
+bool Ship::rotate_ship() {
     if (_shipType == Ship::Type::Ship1) {
         return false;
     }
@@ -77,6 +60,30 @@ bool Ship::_rotate() {
     // correct position if ship crosses the border
     _correct_position();
     return true;
+}
+
+bool Ship::shift_ship(ShiftDirection direction) {
+    auto bodyCopy = _body;
+    auto peripheryCopy = _shipPeriphery;
+    switch (direction) {
+    case ShiftDirection::Left:
+        _shift_left(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Up:
+        _shift_up(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Right:
+        _shift_right(bodyCopy, peripheryCopy);
+        break;
+    case ShiftDirection::Down:
+        _shift_down(bodyCopy, peripheryCopy);
+        break;
+    }
+    if (_check_validity_of(bodyCopy)) {
+        _set_body(bodyCopy, peripheryCopy);
+        return true;
+    }
+    return false;
 }
 
 void Ship::_shift_left(ShipBody &body, ShipPeriphery &periphery) {
@@ -132,23 +139,84 @@ void Ship::_correct_position() {
     }
 }
 
-void Ship::_init_periphery() {
-    // initially ship is horizontal and was not rotated
-    auto leftCell = _body.front(); --leftCell.second;
-    auto rightCell = _body.back(); ++rightCell.second;
-    auto topCell = leftCell; --topCell.first;
-    auto bottomCell = leftCell; ++bottomCell.first;
-    // add top & bottom cells
-    for (auto i = 0u; i < _body.size() + 2; ++i) {
+void Ship::_init_periphery(Orientation orientation) {
+    if (orientation == Orientation::Horizontal) {
+        auto leftCell = _body.front(); --leftCell.second;
+        auto rightCell = _body.back(); ++rightCell.second;
+        auto topCell = leftCell; --topCell.first;
+        auto bottomCell = leftCell; ++bottomCell.first;
+        // add top & bottom cells
+        for (auto i = 0u; i < _body.size() + 2; ++i) {
+            _shipPeriphery.push_back(topCell);
+            _shipPeriphery.push_back(bottomCell);
+            // shift top & bottom cells
+            ++topCell.second;
+            ++bottomCell.second;
+        }
+        // add side cells
+        _shipPeriphery.push_back(leftCell);
+        _shipPeriphery.push_back(rightCell);
+    }
+    else {
+        auto topCell = _body.front(); --topCell.first;
+        auto bottomCell = _body.back(); ++bottomCell.first;
+        auto leftCell = topCell; --leftCell.second;
+        auto rightCell = topCell; ++rightCell.second;
+        // add left & right cells
+        for (auto i = 0u; i < _body.size() + 2; ++i) {
+            _shipPeriphery.push_back(leftCell);
+            _shipPeriphery.push_back(rightCell);
+            // shift left & right cells
+            ++leftCell.first;
+            ++rightCell.first;
+        }
+        // add top & bottom cells
         _shipPeriphery.push_back(topCell);
         _shipPeriphery.push_back(bottomCell);
-        // shift top & bottom cells
-        ++topCell.second;
-        ++bottomCell.second;
     }
-    // add side cells
-    _shipPeriphery.push_back(leftCell);
-    _shipPeriphery.push_back(rightCell);
+}
+
+void Ship::_init_body(Type shipType, Orientation orientation) {
+    if (orientation == Orientation::Horizontal) {
+        switch (shipType) {
+        case Type::Ship1:
+            _body = { {ShipCell(0, 0)} };
+            break;
+        case Type::Ship2:
+            _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)} };
+            break;
+        case Type::Ship3:
+            _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)},
+                      {ShipCell(0, 2)} };
+            break;
+        case Type::Ship4:
+            _body = { {ShipCell(0, 0)}, {ShipCell(0, 1)},
+                      {ShipCell(0, 2)}, {ShipCell(0, 3)} };
+            break;
+        default:
+            break;
+        }
+    }
+    else {
+        switch (shipType) {
+        case Type::Ship1:
+            _body = { {ShipCell(0, 0)} };
+            break;
+        case Type::Ship2:
+            _body = { {ShipCell(0, 0)}, {ShipCell(1, 0)} };
+            break;
+        case Type::Ship3:
+            _body = { {ShipCell(0, 0)}, {ShipCell(1, 0)},
+                      {ShipCell(2, 0)} };
+            break;
+        case Type::Ship4:
+            _body = { {ShipCell(0, 0)}, {ShipCell(1, 0)},
+                      {ShipCell(2, 0)}, {ShipCell(3, 0)} };
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 bool Ship::_check_validity_of(const ShipBody &body) {
@@ -163,6 +231,17 @@ bool Ship::_check_validity_of(const ShipBody &body) {
 void Ship::_set_body(const ShipBody &body, const ShipPeriphery &periphery) {
     _body = body;
     _shipPeriphery = periphery;
+}
+
+bool Ship::has_intersection_with(const Ship &ship) {
+    for (auto &shipCell1: _body) {
+        for (auto &shipCell2: ship._body) {
+            if (shipCell1 == shipCell2) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool Ship::is_horizontal() const {

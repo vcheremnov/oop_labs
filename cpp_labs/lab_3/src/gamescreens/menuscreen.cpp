@@ -23,6 +23,9 @@ void MenuBox::_draw_object(GameModel *model) {
     int line = 2, width = window->get_width();
     std::string optName;
     for (Option opt = Option::StartGame; opt != Option::Total; ++opt) {
+        if (!model->menu_selector().is_active_option(opt)) {
+            continue;
+        }
         if (opt == model->menu_selector().get_option()) {
             window->set_attributes({TextAttr::Highlight});
         }
@@ -39,7 +42,7 @@ class MenuScreen: public ConsoleScreen {
 public:
     MenuScreen() {
         _load_background("ascii/menu");
-        _add_object(new MenuBox(20, 10, 5, 5));
+        _add_object(new MenuBox(22, 11, 5, 5));
     }
 };
 
