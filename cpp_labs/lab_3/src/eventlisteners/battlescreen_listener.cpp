@@ -11,9 +11,19 @@ private:
 
 void BattleScreenListener::key_event_occurred(const KeyEvent &keyEvent) {
     auto &moveMaker = _get_model()->move_maker();
-    if (moveMaker.move_was_made()) {
+    auto &gameData = _get_model()->game_data();
+
+    if (keyEvent.get_keycode() == KeyCode::KeyP) {
+        _get_model()->pause();
+    }
+    else if (moveMaker.move_was_made()) {
         if (keyEvent.get_keycode() == KeyCode::KeyENTER) {
             moveMaker.proceed();
+        }
+    }
+    else if (gameData.game_has_finished()) {
+        if (keyEvent.get_keycode() == KeyCode::KeyENTER) {
+            _get_model()->finish_game();
         }
     }
     else switch (keyEvent.get_keycode()) {
@@ -32,6 +42,12 @@ void BattleScreenListener::key_event_occurred(const KeyEvent &keyEvent) {
     case KeyCode::KeyENTER:
         moveMaker.make_shot();
         break;
+    case KeyCode::KeyH: {
+        auto activePlayer = gameData.get_active_player();
+        gameData.hide_field(activePlayer, !gameData.field_is_hidden(activePlayer));
+        _get_model()->notify_views();
+        break;
+    }
     default:
         break;
     }

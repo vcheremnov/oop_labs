@@ -8,10 +8,11 @@ class GameModel;
 
 class ShipInitializer {
 public:
-    const std::size_t SHIP1_NUM = 4;
-    const std::size_t SHIP2_NUM = 3;
-    const std::size_t SHIP3_NUM = 2;
-    const std::size_t SHIP4_NUM = 1;
+    static const std::size_t SHIP1_NUM = 4;
+    static const std::size_t SHIP2_NUM = 3;
+    static const std::size_t SHIP3_NUM = 2;
+    static const std::size_t SHIP4_NUM = 1;
+    static const std::size_t SHIPS_TOTAL = SHIP1_NUM + SHIP2_NUM + SHIP3_NUM + SHIP4_NUM;
     // initialization
     ShipInitializer(GameModel*);
     void start_initialization();
@@ -38,9 +39,10 @@ private:
     // private methods
     void _reset_ship_counters();
     void _reset_current_indexes();
-    void _switch_to_next_ship();
     bool _ship_is_overlapping(const Ship&);
     bool _set_ship(const Ship&);
+    void _place_ship_on_field(const Ship&);
+    void _remove_ship_from_field(const Ship&);
     Ship &_current_ship();
     ShipInitPair &_current_ship_pair();
     // data

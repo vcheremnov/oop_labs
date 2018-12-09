@@ -22,6 +22,8 @@ public:
         { return _lastMoveResult; }
     const TargetCell &get_target() const
         { return _curTarget; }
+    const TargetCell &get_last_shot_cell() const
+        { return _lastShotCell; }
     bool move_was_made() const
         { return _lastMoveResult != MoveResult::NotMade; }
     bool move_is_valid() const;
@@ -29,10 +31,11 @@ public:
 private:
     // private methods
     void _set_default_pos();
-    Ship &_find_ship(Field::pos row, Field::pos col);
+    Ship& _find_ship(Field::pos row, Field::pos col);
     void _mark_ship_periphery(const Ship&, Field&);
     // data
     GameModel *_model = nullptr;
     MoveResult _lastMoveResult = MoveResult::NotMade;
     TargetCell _curTarget;
+    TargetCell _lastShotCell;
 };

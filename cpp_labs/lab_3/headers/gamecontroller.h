@@ -5,6 +5,7 @@
 #include <memory>
 #include "movemaker.h"
 #include "shipinitializer.h"
+#include "gamedata.h"
 
 class GameModel;
 
@@ -12,7 +13,7 @@ class GameController {
 public:
     GameController(GameModel*);
     virtual ~GameController() = default;
-    GameState get_game_state();
+    const GameData &get_game_data();
     ShipInitializer &get_ship_initializer();
     MoveMaker &get_move_maker();
     virtual EventListener *get_event_listener() = 0;

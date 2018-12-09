@@ -13,10 +13,12 @@ ShipInitializer::ShipInitializer(GameModel *model): _model(model) {
 
 void ShipInitializer::random_initialization() {
     // reset all placed ships
+    auto &gameData = _model->game_data();
     for (auto &[shipType, shipPairSet]: _ships) {
         for (auto &shipPair: shipPairSet) {
             if (!shipPair.second) {
-                _model->_remove_ship(shipPair.first);
+                _remove_ship_from_field(shipPair.first);
+                gameData._delete_ship(shipPair.first, gameData.get_active_player());
             }
         }
         shipPairSet.clear();
@@ -105,13 +107,14 @@ bool ShipInitializer::accept_choice() {
     if (!placement_done()) {
         return false;
     }
-    _model->_next_player();
-    if (_model->_activePlayer == PlayerNumber::Player1) {
+    _model->game_data()._next_player();
+    if (_model->game_data().get_active_player() == PlayerNumber::Player1) {
         _model->start_game();
     }
     else {
         start_initialization();
     }
+    _model->notify_views();
     return true;
 }
 
@@ -172,7 +175,9 @@ void ShipInitializer::shift_ship(Ship::ShiftDirection direction) {
 
 bool ShipInitializer::_set_ship(const Ship &ship) {
     if (_shipCounters[ship.get_type()] > 0 && !_ship_is_overlapping(ship)) {
-        _model->_place_ship(ship);
+        auto &gameData = _model->game_data();
+        gameData._add_ship(ship, gameData.get_active_player());
+        _place_ship_on_field(ship);
         _ships[ship.get_type()].push_back(ShipInitPair(ship, false));
         --_shipCounters[ship.get_type()];
         return true;
@@ -182,7 +187,9 @@ bool ShipInitializer::_set_ship(const Ship &ship) {
 
 bool ShipInitializer::set_ship() {
     if (_shipCounters[_curType] > 0 && !ship_is_placed() && !ship_is_overlapping()) {
-        _model->_place_ship(current_ship());
+        auto &gameData = _model->game_data();
+        gameData._add_ship(current_ship(), gameData.get_active_player());
+        _place_ship_on_field(current_ship());
         _model->notify_views();
         --_shipCounters[_curType];
         _current_ship_pair().second = false;
@@ -196,11 +203,32 @@ void ShipInitializer::reset_ship() {
     // check if ship has been placed
     if (ship_is_placed()) {
         // remove ship
-        _model->_remove_ship(current_ship());
+        auto &ship = current_ship();
+        auto &gameData = _model->game_data();
+        gameData._delete_ship(ship, gameData.get_active_player());
+        _remove_ship_from_field(ship);
         // restore flag
         _current_ship_pair().second = true;
         ++_shipCounters[_curType];
         _model->notify_views();
+    }
+}
+
+void ShipInitializer::_place_ship_on_field(const Ship &ship) {
+    auto &gameData = _model->game_data();
+    auto &coordinates = ship.get_body();
+    auto &field = gameData._get_field_pair_for(gameData.get_active_player()).first;
+    for (auto &[row, col]: coordinates) {
+        field.set_cell_type(row, col, Field::Cell::Ship);
+    }
+}
+
+void ShipInitializer::_remove_ship_from_field(const Ship &ship) {
+    auto &gameData = _model->game_data();
+    auto &coordinates = ship.get_body();
+    auto &field = gameData._get_field_pair_for(gameData.get_active_player()).first;
+    for (auto &[row, col]: coordinates) {
+        field.set_cell_type(row, col, Field::Cell::Empty);
     }
 }
 
@@ -218,7 +246,7 @@ bool ShipInitializer::ship_is_overlapping() {
 }
 
 bool ShipInitializer::_ship_is_overlapping(const Ship &ship) {
-    auto &field = _model->get_field_pair().first;
+    auto &field = _model->game_data().get_active_field_pair().first;
     for (auto &cell: ship.get_body()) {
         if (field.get_cell_type(cell.first, cell.second) == Field::Cell::Ship) {
             return true;
@@ -241,10 +269,4 @@ std::size_t ShipInitializer::ships_remained(Ship::Type shipType) {
 bool ShipInitializer::ship_is_placed() {
     auto curShipIx = _curIndexes[_curType];
     return !_ships[_curType][curShipIx].second;
-}
-
-void ShipInitializer::_switch_to_next_ship() {
-    auto shipType = _curType;
-    auto shipIx = _curIndexes[_curType];
-
 }

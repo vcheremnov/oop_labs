@@ -1,13 +1,19 @@
 #pragma once
 
+// game types
+enum class GameType {
+    ConsoleGame, GuiGame
+};
+
 // game states
 enum class GameState {
     SplashScreen,
-    MenuSelect,
+    MainMenu,
+    ControlsMenu,
     ShipPlacement,
     Battle,
     Stats,
-    QuitScreen
+    Pause
 };
 
 // player's number

@@ -2,12 +2,38 @@
 #include <stdexcept>
 #include "player.h"
 #include "event.h"
+#include "gamestate.h"
 #include <random>
 #include <algorithm>
 #include <numeric>
 #include <unistd.h>
 
-namespace  {
+// player
+
+Player::Player(GameController *controller): _controller(controller) {
+    if (controller == nullptr) {
+        throw std::runtime_error("Player::Player() error: game controller is NULL");
+    }
+}
+
+// bot player
+
+void BotPlayer::wait_event() {
+    switch (_get_controller()->get_game_data().get_game_state()) {
+    case GameState::ShipPlacement:
+        _init_shooting_sequence();
+        _get_controller()->get_ship_initializer().random_initialization();
+        _get_controller()->get_ship_initializer().accept_choice();
+        break;
+    case GameState::Battle:
+        _make_move();
+        break;
+    default:
+        break;
+    }
+}
+
+namespace {
 
 KeyCode int_to_keycode(int code) {
     switch (code) {
@@ -27,10 +53,16 @@ KeyCode int_to_keycode(int code) {
         return KeyCode::KeyE;
     case 'z': case 'Z':
         return KeyCode::KeyZ;
+    case 'h': case 'H':
+        return KeyCode::KeyH;
     case 'r': case 'R':
         return KeyCode::KeyR;
+    case 'p': case 'P':
+        return KeyCode::KeyP;
     case ' ':
         return KeyCode::KeySPACE;
+    case KEY_BACKSPACE:
+        return KeyCode::KeyBACKSPACE;
     case '\n':
         return KeyCode::KeyENTER;
     default:
@@ -38,53 +70,36 @@ KeyCode int_to_keycode(int code) {
     }
 }
 
-} // anonymous namespace
+// console player
 
-// player
+class ConsolePlayer: public HumanPlayer {
+public:
+    using HumanPlayer::HumanPlayer;
+    void wait_event() override;
+};
 
-Player::Player(GameController *controller): _controller(controller) {
-    if (controller == nullptr) {
-        throw std::runtime_error("Player::Player() error: game controller is NULL");
-    }
-}
-
-// human player
-
-void HumanPlayer::wait_event() {
+void ConsolePlayer::wait_event() {
     auto eventListener = _get_controller()->get_event_listener();
     flushinp();
     int code = getch();
-    if (code == KEY_MOUSE) {
-        MouseEvent event;
-        // filling mouse event...
-        // ...
-        eventListener->mouse_event_occurred(event);
-    }
-    else {
-        KeyCode keyCode = int_to_keycode(code);
-        KeyEvent event(keyCode);
-        eventListener->key_event_occurred(event);
-    }
+    KeyCode keyCode = int_to_keycode(code);
+    KeyEvent event(keyCode, code, has_key(code));
+    eventListener->key_event_occurred(event);
 }
 
-// bot player
+// register human players
 
-void BotPlayer::wait_event() {
-    switch (_get_controller()->get_game_state()) {
-    case GameState::ShipPlacement:
-        _init_shooting_sequence();
-        _get_controller()->get_ship_initializer().random_initialization();
-        _get_controller()->get_ship_initializer().accept_choice();
-        break;
-    case GameState::Battle:
-        _make_move();
-        break;
-    default:
-        break;
-    }
+bool register_human_players() {
+    HumanPlayerFactory::instance().register_human_player<ConsolePlayer>(GameType::ConsoleGame);
+    return true;
 }
 
-// easy bot player
+bool regHumanPlayers = register_human_players();
+
+} // anonymous namespace
+
+// bot players
+
 namespace {
 
 class EasyBotPlayer: public BotPlayer {
@@ -94,21 +109,21 @@ protected:
     void _init_shooting_sequence() override;
     void _make_move() override;
 private:
-    std::size_t _curTargetIx;
+    std::size_t _curTargetIx = 0;
     std::vector<Field::FieldCell> _cells;
 };
 
 
 void EasyBotPlayer::_make_move() {
-    usleep(1000000);
-    // wait for 1 second
     auto &moveMaker = _get_controller()->get_move_maker();
-    do {
+    // wait for 1 second
+    usleep(1000000);
+    // shoot
+    if (_curTargetIx < _cells.size()) do {
         auto &cell = _cells[_curTargetIx];
         moveMaker.make_shot(cell.first, cell.second);
         ++_curTargetIx;
     } while (!moveMaker.move_was_made() && _curTargetIx < _cells.size());
-    moveMaker.proceed();
 }
 
 void EasyBotPlayer::_init_shooting_sequence() {
@@ -124,14 +139,14 @@ void EasyBotPlayer::_init_shooting_sequence() {
     _curTargetIx = 0;
 }
 
-// register bot
+// register bots
 
-bool register_bot_player() {
-    BotFactory::instance().register_bot_player<EasyBotPlayer>(Difficulty::Easy);
+bool register_bot_players() {
+    BotPlayerFactory::instance().register_bot_player<EasyBotPlayer>(Difficulty::Easy, "EasyBot");
     return true;
 }
 
-bool reg = register_bot_player();
+bool regBotPlayers = register_bot_players();
 
-}
+} // anonymous namespace
 

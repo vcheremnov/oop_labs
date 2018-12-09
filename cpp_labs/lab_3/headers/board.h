@@ -52,6 +52,7 @@ public:
     static const int CELL_HEIGHT = 1;
     using Board::Board;
 protected:
+    void _hide();
     void _draw_object(GameModel*) override;
     void _draw_field_grid() override;
     void _draw_field_cells(const Field&) override;

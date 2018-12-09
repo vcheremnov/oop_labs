@@ -244,14 +244,6 @@ bool Ship::has_intersection_with(const Ship &ship) {
     return false;
 }
 
-bool Ship::is_horizontal() const {
-    return _body.front().first == _body.back().first;
-}
-
-bool Ship::is_vertical() const {
-    return _body.front().second == _body.back().second;
-}
-
 Ship::Type &operator++(Ship::Type &type) {
     if (type == Ship::Type::Total) {
         type = Ship::Type::Ship1;

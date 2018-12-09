@@ -60,7 +60,7 @@ void Board::_draw_field_cells(const Field &field) {
 
 void PlacementBoard::_draw_object(GameModel *model) {
     _draw_field_grid();
-    _draw_field_cells(model->get_field_pair().first);
+    _draw_field_cells(model->game_data().get_active_field_pair().first);
     _draw_current_ship(model);
 }
 
@@ -87,24 +87,22 @@ void PlacementBoard::_draw_current_ship(GameModel *model) {
     }
     // reset colors & attributes
     window->reset_attributes();
-//    window->set_color_pair(TextColor::BLUE_ON_BLACK);
-//    for (auto &cell: curShip.get_periphery()) {
-//        window->add_character_at(Board::CELL_HEIGHT * cell.first + startY,
-//                                 Board::CELL_WIDTH * cell.second + startX, chtype('*'));
-//    }
     window->reset_color_pair();
 }
 
 // BattleBoard
 
 void BattleBoard::_draw_object(GameModel *model) {
+    auto &gameData = model->game_data();
     _draw_field_grid();
-    _draw_field_cells(model->get_field_pair().second);
-    if (model->move_maker().move_was_made()) {
-        _highlight_target(model);
-    }
-    else {
-        _draw_cursor(model);
+    _draw_field_cells(gameData.get_active_field_pair().second);
+    if (!gameData.game_has_finished()) {
+        if (model->move_maker().move_was_made()) {
+            _highlight_target(model);
+        }
+        else if (gameData.player_is_human(gameData.get_active_player())) {
+            _draw_cursor(model);
+        }
     }
 }
 
@@ -155,7 +153,7 @@ void BattleBoard::_draw_cursor(GameModel *model) {
 void BattleBoard::_highlight_target(GameModel *model) {
     auto window = _get_window();
     auto &moveMaker = model->move_maker();
-    auto &targetCell = moveMaker.get_target();
+    auto &targetCell = moveMaker.get_last_shot_cell();
     auto moveResult = moveMaker.last_move_result();
 
     auto posY = Board::CELL_HEIGHT * targetCell.first + startY;
@@ -177,8 +175,25 @@ void BattleBoard::_highlight_target(GameModel *model) {
 // MiniBoard
 
 void MiniBoard::_draw_object(GameModel *model) {
-    _draw_field_grid();
-    _draw_field_cells(model->get_field_pair().first);
+    auto &gameData = model->game_data();
+    if (gameData.field_is_hidden(gameData.get_active_player())) {
+        _hide();
+    }
+    else {
+        _draw_field_grid();
+        _draw_field_cells(gameData.get_active_field_pair().first);
+    }
+}
+
+void MiniBoard::_hide() {
+    auto window = _get_window();
+    window->set_attributes({TextAttr::Dim});
+    for (auto line = 0; line < window->get_height(); ++line) {
+        for (auto col = 0; col < window->get_width(); ++col) {
+            window->add_character_at(line, col, ACS_CKBOARD);
+        }
+    }
+    window->reset_attributes();
 }
 
 void MiniBoard::_draw_field_grid() {
@@ -196,12 +211,6 @@ void MiniBoard::_draw_field_cells(const Field &field) {
     auto window = _get_window();
     auto &fieldMap = field.get_field_map();
 
-
-    // TEST
-    if (fieldMap.empty()) {
-        return;
-    }
-
     window->set_attributes({TextAttr::Bold});
     for (auto row = 0; row < Field::HEIGHT; ++row) {
         for (auto col = 0; col < Field::WIDTH; ++col) {
@@ -209,9 +218,11 @@ void MiniBoard::_draw_field_cells(const Field &field) {
             auto posY = startY + row * MiniBoard::CELL_HEIGHT;
             switch (fieldMap[row][col]) {
             case Field::Cell::Ship:
+                window->set_color_pair(TextColor::GREEN_ON_BLACK);
                 window->add_character_at(posY, posX, ACS_BOARD);
                 break;
             case Field::Cell::ShipDestroyed:
+                window->set_color_pair(TextColor::RED_ON_BLACK);
                 window->add_character_at(posY, posX, chtype('X'));
                 break;
             case Field::Cell::Miss:
@@ -220,6 +231,7 @@ void MiniBoard::_draw_field_cells(const Field &field) {
             default:
                 break;
             }
+            window->reset_color_pair();
         }
     }
     window->reset_attributes();

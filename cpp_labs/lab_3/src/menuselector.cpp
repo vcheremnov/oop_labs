@@ -17,7 +17,7 @@ MenuSelector::MenuSelector(GameModel *model): _model(model) {
         {Option::Difficulty, "Difficulty: "},
         {Option::AI_level_1, "AI level 1: "},
         {Option::AI_level_2, "AI level 2: "},
-        {Option::Options, "Options"},
+        {Option::Controls, "Controls"},
         {Option::Quit, "Quit"}
     };
     _difficultyNames = {
@@ -36,7 +36,7 @@ MenuSelector::MenuSelector(GameModel *model): _model(model) {
         {Option::Difficulty, true},
         {Option::AI_level_1, true},
         {Option::AI_level_2, true},
-        {Option::Options, true},
+        {Option::Controls, true},
         {Option::Quit, true}
     };
     _set_inactive_options();
@@ -67,37 +67,45 @@ void MenuSelector::prev_option() {
 }
 
 void MenuSelector::next_difficulty() {
-    if (++_difficulty == Difficulty::Total) {
-        _difficulty = Difficulty::Easy;
+    auto difficulty = _model->game_data().get_difficulty();
+    if (++difficulty == Difficulty::Total) {
+        difficulty = Difficulty::Easy;
     }
+    _model->game_data()._set_difficulty(difficulty);
     _model->notify_views();
 }
 
 void MenuSelector::prev_difficulty() {
-    if (--_difficulty == Difficulty::Total) {
-        --_difficulty;
+    auto difficulty = _model->game_data().get_difficulty();
+    if (--difficulty == Difficulty::Total) {
+        --difficulty;
     }
+    _model->game_data()._set_difficulty(difficulty);
     _model->notify_views();
 }
 
 void MenuSelector::next_gamemode() {
-    if (++_gamemode == GameMode::Total) {
-        _gamemode = GameMode::Player_vs_Bot;
+    auto gameMode = _model->game_data().get_gamemode();
+    if (++gameMode == GameMode::Total) {
+        gameMode = GameMode::Player_vs_Bot;
     }
+    _model->game_data()._set_gamemode(gameMode);
     _set_inactive_options();
     _model->notify_views();
 }
 
 void MenuSelector::prev_gamemode() {
-    if (--_gamemode == GameMode::Total) {
-        --_gamemode;
+    auto gameMode = _model->game_data().get_gamemode();
+    if (--gameMode == GameMode::Total) {
+        --gameMode;
     }
+    _model->game_data()._set_gamemode(gameMode);
     _set_inactive_options();
     _model->notify_views();
 }
 
 void MenuSelector::_set_inactive_options() {
-    switch (_gamemode) {
+    switch (_model->game_data().get_gamemode()) {
     case GameMode::Player_vs_Bot:
         _activeOptions[Option::Difficulty] = true;
         _activeOptions[Option::AI_level_1] = false;
@@ -119,53 +127,52 @@ void MenuSelector::_set_inactive_options() {
 }
 
 void MenuSelector::next_AI_level_first() {
-    if (++_aiLevel1 == Difficulty::Total) {
-        _aiLevel1 = Difficulty::Easy;
+    auto aiLevel1 = _model->game_data().get_AI_level(PlayerNumber::Player1);
+    if (++aiLevel1 == Difficulty::Total) {
+        aiLevel1 = Difficulty::Easy;
     }
+    _model->game_data()._set_AI_level(PlayerNumber::Player1, aiLevel1);
     _model->notify_views();
 }
 
 void MenuSelector::prev_AI_level_first() {
-    if (--_aiLevel1 == Difficulty::Total) {
-        --_aiLevel1;
+    auto aiLevel1 = _model->game_data().get_AI_level(PlayerNumber::Player1);
+    if (--aiLevel1 == Difficulty::Total) {
+        --aiLevel1;
     }
+    _model->game_data()._set_AI_level(PlayerNumber::Player1, aiLevel1);
     _model->notify_views();
 }
 
 void MenuSelector::next_AI_level_second() {
-    if (++_aiLevel2 == Difficulty::Total) {
-        _aiLevel2 = Difficulty::Easy;
+    auto aiLevel2 = _model->game_data().get_AI_level(PlayerNumber::Player2);
+    if (++aiLevel2 == Difficulty::Total) {
+        aiLevel2 = Difficulty::Easy;
     }
+    _model->game_data()._set_AI_level(PlayerNumber::Player2, aiLevel2);
     _model->notify_views();
 }
 
 void MenuSelector::prev_AI_level_second() {
-    if (--_aiLevel2 == Difficulty::Total) {
-        --_aiLevel2;
+    auto aiLevel2 = _model->game_data().get_AI_level(PlayerNumber::Player2);
+    if (--aiLevel2 == Difficulty::Total) {
+        --aiLevel2;
     }
+    _model->game_data()._set_AI_level(PlayerNumber::Player2, aiLevel2);
     _model->notify_views();
 }
 
-template<typename T>
-void MenuSelector::_next_option_mode(T &option) {
-
-}
-
-template<typename T>
-void MenuSelector::_prev_option_mode(T &option) {
-
-}
-
 std::string MenuSelector::get_option_name(Option option) {
+    auto &gameData = _model->game_data();
     switch (option) {
     case Option::Difficulty:
-        return _optionNames[option] + _difficultyNames[_difficulty];
+        return _optionNames[option] + _difficultyNames[gameData.get_difficulty()];
     case Option::GameMode:
-        return _optionNames[option] + _gamemodeNames[_gamemode];
+        return _optionNames[option] + _gamemodeNames[gameData.get_gamemode()];
     case Option::AI_level_1:
-        return _optionNames[option] + _difficultyNames[_aiLevel1];
+        return _optionNames[option] + _difficultyNames[gameData.get_AI_level(PlayerNumber::Player1)];
     case Option::AI_level_2:
-        return _optionNames[option] + _difficultyNames[_aiLevel2];
+        return _optionNames[option] + _difficultyNames[gameData.get_AI_level(PlayerNumber::Player2)];
     default:
         break;
     }

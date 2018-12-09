@@ -18,21 +18,30 @@ enum class KeyCode {
     KeyENTER,
     KeyTAB,
     KeySPACE,
+    KeyBACKSPACE,
     KeyQ,
     KeyE,
+    KeyH,
     KeyZ,
     KeyR,
+    KeyP,
     KeyUNKNOWN
 };
 
 class KeyEvent: public Event {
 public:
-    KeyEvent(KeyCode keyCode):
-        _keyCode(keyCode) {}
+    KeyEvent(KeyCode keyCode, int rawCode, bool isSpecialKey):
+        _keyCode(keyCode), _rawCode(rawCode), _isSpecialKey(isSpecialKey) {}
     KeyCode get_keycode() const
         { return _keyCode; }
+    int get_raw_code() const
+        { return _rawCode; }
+    bool is_special_key() const
+        { return _isSpecialKey; }
 private:
     KeyCode _keyCode;
+    int _rawCode;
+    bool _isSpecialKey;
 };
 
 class MouseEvent: public Event {

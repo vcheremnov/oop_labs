@@ -36,9 +36,6 @@ public:
                        "Class Creator has to inherit from GameCreator");
          _registry[gameType].reset(new Creator());
     }
-    void forget_creator(GameType gameType) {
-        _registry.erase(gameType);
-    }
     // factory methods
     GameController *get_controller(GameType gameType, GameModel *model)
         { return _registry[gameType]->get_controller(model); }
@@ -51,7 +48,6 @@ private:
     // registry
     std::map<GameType, std::unique_ptr<GameCreator>> _registry;
 };
-
 
 bool register_game_types() {
     auto &factory = GameFactory::instance();
@@ -66,6 +62,7 @@ bool regCreators = register_game_types();
 // Game
 
 Game::Game(GameType gameType):
+    _gameType(gameType),
     _model{new GameModel()},
     _view{GameFactory::instance().get_view(gameType, _model.get())},
     _controller{GameFactory::instance().get_controller(gameType, _model.get())} {
@@ -73,36 +70,41 @@ Game::Game(GameType gameType):
     // register view as model's observer
     _model->attach_view(_view.get());
     // create UI user
-    _UIuser = std::make_unique<HumanPlayer>(_controller.get());
+    _UIuser.reset(HumanPlayerFactory::instance().get_human_player(_gameType, _controller.get()));
 }
 
 void Game::run() {
-    // show splash screen
-    _view->show();
+    auto &gameData = _model->game_data();
     // game loop
-    while (!_model->is_quit()) {
-        if (_model->game_started()) {
-            // check active player & switch
-            _switch_active_player();
-            // wait event from the active player
-            _activePlayer->wait_event();
+    while (!gameData.is_quit()) {
+        // rendering
+        _view->show();
+        // event handling
+        if (gameData.game_has_started()) {
+            if (_model->move_maker().move_was_made() || gameData.game_has_finished()) {
+                // wait the ui user to continue the game
+                _UIuser->wait_event();
+            }
+            else {
+                // switch to the active player
+                _switch_active_player();
+                // wait event from the active player
+                _activePlayer->wait_event();
+            }
         }
         else {
             // wait event from the ui user
             _UIuser->wait_event();
-            if (_model->game_started()) {
+            if (gameData.game_has_started()) {
+                // ui user has started the game
                 _create_players();
             }
         }
-        // rendering
-        _view->show();
     }
-    // quit screen
-    _UIuser->wait_event();
 }
 
 void Game::_switch_active_player() {
-    switch (_model->get_active_player()) {
+    switch (_model->game_data().get_active_player()) {
     case PlayerNumber::Player1:
         _activePlayer = _player1;
         break;
@@ -113,20 +115,21 @@ void Game::_switch_active_player() {
 }
 
 void Game::_create_players() {
-    auto &menuSelector = _model->menu_selector();
-    auto &botFactory = BotFactory::instance();
-    switch (menuSelector.get_gamemode()) {
+    auto &gameData = _model->game_data();
+    auto &humanPlayerFactory = HumanPlayerFactory::instance();
+    auto &botPlayerFactory = BotPlayerFactory::instance();
+    switch (gameData.get_gamemode()) {
     case GameMode::Player_vs_Bot:
-        _player1.reset(new HumanPlayer(_controller.get()));
-        _player2.reset(botFactory.get_bot_player(menuSelector.get_difficulty(), _controller.get()));
+        _player1.reset(humanPlayerFactory.get_human_player(_gameType, _controller.get()));
+        _player2.reset(botPlayerFactory.get_bot_player(gameData.get_difficulty(), _controller.get()));
         break;
     case GameMode::Player_vs_Player:
-        _player1.reset(new HumanPlayer(_controller.get()));
-        _player2.reset(new HumanPlayer(_controller.get()));
+        _player1.reset(humanPlayerFactory.get_human_player(_gameType, _controller.get()));
+        _player2.reset(humanPlayerFactory.get_human_player(_gameType, _controller.get()));
         break;
     case GameMode::Bot_vs_Bot:
-        _player1.reset(botFactory.get_bot_player(menuSelector.get_AI_level_first(), _controller.get()));
-        _player2.reset(botFactory.get_bot_player(menuSelector.get_AI_level_second(), _controller.get()));
+        _player1.reset(botPlayerFactory.get_bot_player(gameData.get_AI_level(PlayerNumber::Player1), _controller.get()));
+        _player2.reset(botPlayerFactory.get_bot_player(gameData.get_AI_level(PlayerNumber::Player2), _controller.get()));
         break;
     default:
         break;

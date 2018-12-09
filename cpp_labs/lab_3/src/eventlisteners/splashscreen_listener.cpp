@@ -6,7 +6,7 @@ namespace  {
 class SplashScreenListener: public EventListener {
 public:
     void key_event_occurred(const KeyEvent&) override {
-        _get_model()->go_to_menu();
+        _get_model()->main_menu();
     }
 private:
 };

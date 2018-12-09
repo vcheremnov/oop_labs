@@ -29,6 +29,7 @@ const std::map<MoveMaker::MoveResult, std::string> MoveInfoPanel::_messages = {
 };
 
 void MoveInfoPanel::_draw_object(GameModel *model) {
+    auto &gameData = model->game_data();
     auto &moveMaker = model->move_maker();
     auto moveResult = moveMaker.last_move_result();
     auto window = _get_window();
@@ -44,8 +45,19 @@ void MoveInfoPanel::_draw_object(GameModel *model) {
         window->set_attributes({TextAttr::Blink});
         window->print_text_at(2, (panelWidth - _proceedMsg.length()) / 2, _proceedMsg.c_str());
     }
+    else if (gameData.game_has_finished()) {
+        // print message
+        std::string msg = gameData.get_player_name(gameData.get_active_player())+ " wins!";
+        window->set_attributes({TextAttr::Bold});
+        window->print_text_at(1, (panelWidth - msg.length()) / 2, msg.c_str());
+        window->reset_attributes();
+        // print prompt
+        window->set_attributes({TextAttr::Blink});
+        window->print_text_at(2, (panelWidth - _proceedMsg.length()) / 2, _proceedMsg.c_str());
+    }
     else {
-        auto &playerName = model->get_player_name(model->get_active_player());
+        auto &gameData = model->game_data();
+        auto &playerName = gameData.get_player_name(gameData.get_active_player());
         window->print_text_at(1, (panelWidth - _moveMsg.length()) / 2, _moveMsg.c_str());
         window->set_attributes({TextAttr::Bold});
         window->print_text_at(2, (panelWidth - playerName.length()) / 2, playerName.c_str());
@@ -69,12 +81,17 @@ const std::string ActionButton::_makeShotMsg = "Make shot";
 
 
 void ActionButton::_draw_object(GameModel *model) {
+    auto &gameData = model->game_data();
     auto &moveMaker = model->move_maker();
     auto window = _get_window();
     auto buttonWidth = window->get_width();
 
-    if (moveMaker.move_was_made()) {
+    if (moveMaker.move_was_made() || gameData.game_has_finished()) {
         window->set_attributes({TextAttr::Highlight});
+        window->print_text_at(1, (buttonWidth - _continueMsg.length()) / 2, _continueMsg.c_str());
+    }
+    else if (gameData.player_is_bot(gameData.get_active_player())) {
+        window->set_attributes({TextAttr::Dim});
         window->print_text_at(1, (buttonWidth - _continueMsg.length()) / 2, _continueMsg.c_str());
     }
     else {

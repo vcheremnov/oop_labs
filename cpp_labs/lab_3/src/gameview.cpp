@@ -62,7 +62,7 @@ ConsoleView::~ConsoleView() {
 void ConsoleView::show() {
     if (_is_updated()) {
         _reset_update();
-        GameState gameState = _get_model()->get_game_state();
+        GameState gameState = _get_model()->game_data().get_game_state();
         _screens[gameState]->render(_get_model());
     }
 }

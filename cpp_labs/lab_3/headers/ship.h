@@ -31,8 +31,6 @@ public:
     Type get_type() const
         { return _shipType; }
     bool has_intersection_with(const Ship&);
-    bool is_horizontal() const;
-    bool is_vertical() const;
     // friends
     friend class ShipInitializer;
     friend bool operator==(const Ship&, const Ship&);

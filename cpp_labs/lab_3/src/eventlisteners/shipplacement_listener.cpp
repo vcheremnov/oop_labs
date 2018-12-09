@@ -56,6 +56,9 @@ void ShipPlacementListener::key_event_occurred(const KeyEvent &keyEvent) {
     case KeyCode::KeyZ:
         shipInitializer.reset_ship();
         break;
+    case KeyCode::KeyP:
+        model->pause();
+        break;
     default:
         break;
     }

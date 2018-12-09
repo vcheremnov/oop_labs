@@ -6,6 +6,7 @@ MoveMaker::MoveMaker(GameModel *model): _model(model) {
     if (model == nullptr) {
         throw std::runtime_error("TurnMaker::TurnMaker(..): model is NULL");
     }
+    _lastShotCell = {-1, -1};
     _set_default_pos();
 }
 
@@ -19,32 +20,42 @@ void MoveMaker::make_shot(Field::pos row, Field::pos col) {
         return;
     }
 
-    auto &fieldPairs = _model->_fieldPairs;
-    auto activePlayer = _model->get_active_player(),
-         inactivePlayer = _model->get_inactive_player();
-    auto cellType = fieldPairs[inactivePlayer].first.get_cell_type(row, col);
+    auto &gameData = _model->game_data();
+    auto &playerStats = _model->player_stats(gameData.get_active_player());
+    auto &activeFieldPair = gameData._get_field_pair_for(gameData.get_active_player());
+    auto &inactiveFieldPair = gameData._get_field_pair_for(gameData.get_inactive_player());
+    auto cellType = inactiveFieldPair.first.get_cell_type(row, col);
 
     switch (cellType) {
     case Field::Cell::Ship: {
-        fieldPairs[activePlayer].second.set_cell_type(row, col, Field::Cell::ShipDestroyed);
-        fieldPairs[inactivePlayer].first.set_cell_type(row, col, Field::Cell::ShipDestroyed);
+        playerStats._add_hit();
+        // change fields
+        activeFieldPair.second.set_cell_type(row, col, Field::Cell::ShipDestroyed);
+        inactiveFieldPair.first.set_cell_type(row, col, Field::Cell::ShipDestroyed);
+        // hit ship
         auto &ship = _find_ship(row, col);
         ship.hit_ship({row, col});
         if (ship.is_destroyed()) {
-            _mark_ship_periphery(ship, fieldPairs[activePlayer].second);
-            _mark_ship_periphery(ship, fieldPairs[inactivePlayer].first);
+            _mark_ship_periphery(ship, activeFieldPair.second);
+            _mark_ship_periphery(ship, inactiveFieldPair.first);
+            gameData._delete_ship(ship, gameData.get_inactive_player());
             _lastMoveResult = MoveResult::Destroyed;
+            playerStats._add_destroyed_ship();
         }
         else {
             _lastMoveResult = MoveResult::Hit;
         }
+        _lastShotCell = {row, col};
         _model->notify_views();
         break;
     }
     case Field::Cell::Empty:
-        fieldPairs[activePlayer].second.set_cell_type(row, col, Field::Cell::Miss);
-        fieldPairs[inactivePlayer].first.set_cell_type(row, col, Field::Cell::Miss);
+        activeFieldPair.second.set_cell_type(row, col, Field::Cell::Miss);
+        inactiveFieldPair.first.set_cell_type(row, col, Field::Cell::Miss);
         _lastMoveResult = MoveResult::Miss;
+        playerStats._add_miss();
+
+        _lastShotCell = {row, col};
         _model->notify_views();
         break;
     default:
@@ -55,13 +66,13 @@ void MoveMaker::make_shot(Field::pos row, Field::pos col) {
 }
 
 bool MoveMaker::move_is_valid() const {
-    auto &field = _model->get_field_pair().second;
+    auto &field = _model->game_data().get_active_field_pair().second;
     return field.get_cell_type(_curTarget.first, _curTarget.second) == Field::Cell::Unknown;
 }
 
 void MoveMaker::proceed() {
     if (_lastMoveResult == MoveResult::Miss) {
-        _model->_next_player();
+        _model->game_data()._next_player();
         _set_default_pos();
     }
     if (_lastMoveResult != MoveResult::NotMade) {
@@ -100,7 +111,8 @@ void MoveMaker::shift_pos(ShiftDirection shiftDirection) {
 }
 
 Ship &MoveMaker::_find_ship(Field::pos row, Field::pos col) {
-    auto &shipSet = _model->_ships[_model->get_inactive_player()];
+    auto inactivePlayer = _model->game_data().get_inactive_player();
+    auto &shipSet = _model->game_data()._get_ship_list_for(inactivePlayer);
     for (auto &ship: shipSet) {
         for (auto &cell: ship.get_body()) {
             if (cell.first == row && cell.second == col) {
@@ -122,17 +134,3 @@ void MoveMaker::_mark_ship_periphery(const Ship &ship, Field &field) {
 void MoveMaker::_set_default_pos() {
     _curTarget = {Field::HEIGHT / 2, Field::WIDTH / 2};
 }
-
-//#include <cassert>
-
-//void MoveMaker::destroy() {
-//    for (auto row = 0; row < Field::HEIGHT; ++row) {
-//        for (auto col = 0; col < Field::WIDTH; ++col) {
-//            make_shot(row, col);
-//        }
-//    }
-//    auto &shipSet = _model->_ships[_model->_inactivePlayer];
-//    for (auto &ship: shipSet) {
-//        assert(("Ship must be destroyed", ship.is_destroyed()));
-//    }
-//}

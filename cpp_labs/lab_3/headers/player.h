@@ -5,6 +5,8 @@
 #include <vector>
 #include "field.h"
 
+// base player
+
 class Player {
 public:
     Player(GameController*);
@@ -22,7 +24,46 @@ private:
 class HumanPlayer: public Player {
 public:
     using Player::Player;
-    void wait_event() override;
+};
+
+// human player factory
+
+class BaseHumanPlayerCreator {
+public:
+    virtual ~BaseHumanPlayerCreator() = default;
+    virtual HumanPlayer *get_human_player(GameController*) = 0;
+};
+
+template<typename ConcreteHumanPlayer>
+class HumanPlayerCreator: public BaseHumanPlayerCreator {
+public:
+    static_assert(std::is_base_of<HumanPlayer, ConcreteHumanPlayer>::value,
+                  "Class ConcreteHumanPlayer has to inherit from HumanPlayer");
+    HumanPlayer *get_human_player(GameController *controller) override
+        { return new ConcreteHumanPlayer(controller); }
+};
+
+class HumanPlayerFactory {
+public:
+    // singleton access
+    static HumanPlayerFactory &instance() {
+        static HumanPlayerFactory obj;
+        return obj;
+    }
+    // registration
+    template<typename ConcreteHumanPlayer>
+    void register_human_player(GameType gameType) {
+         _registry[gameType].reset(new HumanPlayerCreator<ConcreteHumanPlayer>());
+    }
+    // factory methods
+    HumanPlayer *get_human_player(GameType gameType, GameController *controller)
+        { return _registry[gameType]->get_human_player(controller); }
+private:
+    HumanPlayerFactory() = default;
+    HumanPlayerFactory(const HumanPlayerFactory&) = delete;
+    HumanPlayerFactory &operator=(const HumanPlayerFactory&) = delete;
+    // registry
+    std::map<GameType, std::unique_ptr<BaseHumanPlayerCreator>> _registry;
 };
 
 // bot player
@@ -38,40 +79,44 @@ protected:
 
 // bot player factory
 
-class BaseBotCreator {
+class BaseBotPlayerCreator {
 public:
-    virtual ~BaseBotCreator() = default;
+    virtual ~BaseBotPlayerCreator() = default;
     virtual BotPlayer *get_bot_player(GameController*) = 0;
 };
 
-template<typename ConcreteBot>
-class ConcreteBotCreator: public BaseBotCreator {
+template<typename ConcreteBotPlayer>
+class BotPlayerCreator: public BaseBotPlayerCreator {
 public:
-    static_assert(std::is_base_of<BotPlayer, ConcreteBot>::value,
-                  "Class ConcreteBot has to inherit from BotPlayer");
+    static_assert(std::is_base_of<BotPlayer, ConcreteBotPlayer>::value,
+                  "Class ConcreteBotPlayer has to inherit from BotPlayer");
     BotPlayer *get_bot_player(GameController *controller) override
-        { return new ConcreteBot(controller); }
+        { return new ConcreteBotPlayer(controller); }
 };
 
-class BotFactory {
+class BotPlayerFactory {
 public:
     // singleton access
-    static BotFactory &instance() {
-        static BotFactory obj;
+    static BotPlayerFactory &instance() {
+        static BotPlayerFactory obj;
         return obj;
     }
     // registration
     template<typename ConcreteBot>
-    void register_bot_player(Difficulty difficulty) {
-         _registry[difficulty].reset(new ConcreteBotCreator<ConcreteBot>());
+    void register_bot_player(Difficulty difficulty, const std::string &botName) {
+         _registry[difficulty].reset(new BotPlayerCreator<ConcreteBot>());
+         _botNames[difficulty] = botName;
     }
     // factory methods
     BotPlayer *get_bot_player(Difficulty difficulty, GameController *controller)
-        { return _registry[difficulty]->get_bot_player(controller); }
+        { return _registry.at(difficulty)->get_bot_player(controller); }
+    const std::string& get_bot_player_name(Difficulty aiLevel) const
+        { return _botNames.at(aiLevel); }
 private:
-    BotFactory() = default;
-    BotFactory(const BotFactory&) = delete;
-    BotFactory &operator=(const BotFactory&) = delete;
+    BotPlayerFactory() = default;
+    BotPlayerFactory(const BotPlayerFactory&) = delete;
+    BotPlayerFactory &operator=(const BotPlayerFactory&) = delete;
     // registry
-    std::map<Difficulty, std::unique_ptr<BaseBotCreator>> _registry;
+    std::map<Difficulty, std::unique_ptr<BaseBotPlayerCreator>> _registry;
+    std::map<Difficulty, std::string> _botNames;
 };

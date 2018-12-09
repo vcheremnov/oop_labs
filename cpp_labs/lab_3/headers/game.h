@@ -3,13 +3,9 @@
 #include "gamemodel.h"
 #include "gameview.h"
 #include "gamecontroller.h"
+#include "gamestate.h"
 #include "player.h"
 #include <memory>
-
-// game types
-enum class GameType {
-    ConsoleGame, GuiGame
-};
 
 class Game {
 public:
@@ -18,6 +14,7 @@ public:
     // public methods
     void run();
 private:
+    GameType _gameType;
     // private methods
     void _switch_active_player();
     void _create_players();

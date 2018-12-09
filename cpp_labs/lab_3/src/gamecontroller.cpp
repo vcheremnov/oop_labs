@@ -5,13 +5,12 @@
 
 GameController::GameController(GameModel *model): _model(model) {
     if (model == nullptr) {
-        throw std::runtime_error("GameController::GameController():"
-                                 "model is NULL");
+        throw std::runtime_error("GameController::GameController() error: model is NULL");
     }
 }
 
-GameState GameController::get_game_state() {
-    return _get_model()->get_game_state();
+const GameData &GameController::get_game_data() {
+    return _get_model()->game_data();
 }
 
 ShipInitializer& GameController::get_ship_initializer() {
@@ -34,5 +33,5 @@ ConsoleController::ConsoleController(GameModel *model): GameController (model) {
 }
 
 EventListener* ConsoleController::get_event_listener() {
-    return _listeners[get_game_state()].get();
+    return _listeners[get_game_data().get_game_state()].get();
 }
