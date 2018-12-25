@@ -10,8 +10,14 @@ int main(int argc, char *argv[]) {
         }
 
         CSVParser<std::string, int, double> parser(file);
-        for (auto &record: parser) {
-            std::cout << record << std::endl;
+        try {
+            for (auto &record: parser) {
+                std::cout << record << std::endl;
+            }
+        }
+        catch (const ParserError::Error &exc) {
+            std::cerr << "Error at line " << exc.get_line_number() << ", column " << exc.get_column_number()
+                      << ": " << std::endl << exc.get_line() << std::endl << exc.what() << std::endl;
         }
     }
 
