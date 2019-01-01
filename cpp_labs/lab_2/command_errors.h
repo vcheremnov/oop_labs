@@ -13,75 +13,75 @@ namespace CommandError {
 
 class Error: public std::runtime_error {
 public:
-    Error(const std::string &what_arg);
+    using std::runtime_error::runtime_error;
 };
 
 // unknown command
 
 class UnknownCommand: public Error {
 public:
-    UnknownCommand(const std::string &what_arg);
+    using Error::Error;
 };
 
 // arithmetic error
 
 class ArithmeticError: public Error {
 public:
-    ArithmeticError(const std::string &what_arg);
+    using Error::Error;
 };
 
 class DivisionByZero: public ArithmeticError {
 public:
-    DivisionByZero(const std::string &what_arg);
+    using ArithmeticError::ArithmeticError;
 };
 
 class FunctionDomainError: public ArithmeticError {
 public:
-    FunctionDomainError(const std::string &what_arg);
+    using ArithmeticError::ArithmeticError;
 };
 
 // argument error
 
 class ArgumentError: public Error {
 public:
-    ArgumentError(const std::string &what_arg);
+    using Error::Error;
 };
 
 class InvalidArgument: public ArgumentError {
 public:
-    InvalidArgument(const std::string &what_arg);
+    using ArgumentError::ArgumentError;
 };
 
 class ArgumentMismatch: public ArgumentError {
 public:
-    ArgumentMismatch(const std::string &what_arg);
+    using ArgumentError::ArgumentError;
 };
 
 // calculator's context error
 
 class ContextError: public Error {
 public:
-    ContextError(const std::string &what_arg);
+    using Error::Error;
 };
 
 class StackError: public ContextError {
 public:
-    StackError(const std::string &what_arg);
+    using ContextError::ContextError;
 };
 
 class VariableError: public ContextError {
 public:
-    VariableError(const std::string &what_arg);
+    using ContextError::ContextError;
 };
 
 class InvalidVariableName: public VariableError {
 public:
-    InvalidVariableName(const std::string &what_arg);
+    using VariableError::VariableError;
 };
 
 class MissingVariable: public VariableError {
 public:
-    MissingVariable(const std::string &what_arg);
+    using VariableError::VariableError;
 };
 
 } // namespace CommandError

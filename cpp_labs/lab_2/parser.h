@@ -2,12 +2,12 @@
 #define PARSER_H
 
 #include <iostream>
-#include <vector>
+#include <list>
 #include <string>
 
 class Parser {
 public:
-    using TokenList = std::vector<std::string>;
+    using TokenList = std::list<std::string>;
     Parser(std::istream &inputStream):
         _inputStream(inputStream) {}
     bool has_reached_end()

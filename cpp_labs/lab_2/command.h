@@ -2,7 +2,7 @@
 #define COMMAND_H
 
 #include <string>
-#include <vector>
+#include <list>
 #include "context.h"
 #include "command_errors.h"
 
@@ -10,7 +10,7 @@
 
 class Command {
 public:
-    using ArgList = std::vector<std::string>;
+    using ArgList = std::list<std::string>;
     virtual ~Command() = default;
     virtual void execute(const ArgList &args, Context &context) = 0;
 protected:
