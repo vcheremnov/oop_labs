@@ -1,4 +1,4 @@
-#include <ncurses.h>
+#include <curses.h>
 #include "game/player.h"
 #include "game/gamestate.h"
 #include "gamecontroller/event.h"

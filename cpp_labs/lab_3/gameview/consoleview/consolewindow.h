@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <set>
-#include <ncurses.h>
+#include <curses.h>
 #include "gameview/window.h"
 
 enum class TextAttr {

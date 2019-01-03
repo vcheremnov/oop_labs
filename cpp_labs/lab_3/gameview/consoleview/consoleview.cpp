@@ -1,6 +1,6 @@
 #include "consoleview.h"
 #include "gamemodel/gamemodel.h"
-#include <ncurses.h>
+#include <curses.h>
 #include <stdexcept>
 
 ConsoleView::ConsoleView(GameModel *model):

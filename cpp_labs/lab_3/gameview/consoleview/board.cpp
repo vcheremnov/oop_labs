@@ -1,6 +1,6 @@
 #include "board.h"
 #include "gamemodel/gamemodel.h"
-#include <ncurses.h>
+#include <curses.h>
 
 // Board
 

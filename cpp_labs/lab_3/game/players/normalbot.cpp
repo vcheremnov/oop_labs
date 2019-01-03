@@ -11,14 +11,36 @@ namespace {
 
 class NormalBotPlayer: public BotPlayer {
 public:
+    enum Direction {
+        Up, Right, Down, Left
+    };
     using BotPlayer::BotPlayer;
     void wait_event() override;
 protected:
     void _init_shooting_sequence();
     void _make_move() override;
 private:
+    // when ship is found
+    bool _foundShip = false;
+    bool _foundDirection = false;
+    Field::FieldCell _firstHit;
+    Field::FieldCell _baseCell;
+    Direction _direction;
+    std::vector<Direction> _randomDirections = {
+        Direction::Up,
+        Direction::Down,
+        Direction::Left,
+        Direction::Right
+    };
+    std::size_t _directionIndex = 0;
+    // random shooting
     std::size_t _curTargetIx = 0;
     std::vector<Field::FieldCell> _cells;
+    // private methods
+    Field::FieldCell _get_next_cell();
+    void _invert_direction();
+    void _randomize_directions();
+    void _handle_move_result(MoveMaker::MoveResult, const Field::FieldCell&);
 };
 
 void NormalBotPlayer::wait_event() {
@@ -41,11 +63,84 @@ void NormalBotPlayer::_make_move() {
     // wait for 1 second
     usleep(1000000);
     // shoot
-    if (_curTargetIx < _cells.size()) do {
-        auto &cell = _cells[_curTargetIx];
+    if (_foundShip) do {
+        if (!_foundDirection) {
+            _direction = _randomDirections.at(_directionIndex++);
+        }
+        Field::FieldCell cell = _get_next_cell();
         moveMaker.make_shot(cell.first, cell.second);
-        ++_curTargetIx;
+        auto moveResult = moveMaker.last_move_result();
+        _handle_move_result(moveResult, cell);
+    } while (!moveMaker.move_was_made());
+    else if (_curTargetIx < _cells.size()) do {
+        auto &cell = _cells[_curTargetIx++];
+        moveMaker.make_shot(cell.first, cell.second);
+        auto moveResult = moveMaker.last_move_result();
+        _handle_move_result(moveResult, cell);
     } while (!moveMaker.move_was_made() && _curTargetIx < _cells.size());
+}
+
+Field::FieldCell NormalBotPlayer::_get_next_cell() {
+    switch (_direction) {
+    case Direction::Up:
+        return {_baseCell.first - 1, _baseCell.second};
+    case Direction::Down:
+        return {_baseCell.first + 1, _baseCell.second};
+    case Direction::Left:
+        return {_baseCell.first, _baseCell.second - 1};
+    case Direction::Right:
+        return {_baseCell.first, _baseCell.second + 1};
+    }
+}
+
+void NormalBotPlayer::_invert_direction() {
+    switch (_direction) {
+    case Direction::Up:
+        _direction = Direction::Down;
+        break;
+    case Direction::Down:
+        _direction = Direction::Up;
+        break;
+    case Direction::Left:
+        _direction = Direction::Right;
+        break;
+    case Direction::Right:
+        _direction = Direction::Left;
+        break;
+    }
+}
+
+void NormalBotPlayer::_handle_move_result(MoveMaker::MoveResult moveResult, const Field::FieldCell &cell) {
+    switch (moveResult) {
+    case MoveMaker::MoveResult::Hit:
+        if (_foundShip) {
+            _foundDirection = true;
+        }
+        else {
+            _foundShip = true;
+            _firstHit = cell;
+            _randomize_directions();
+        }
+        _baseCell = cell;
+        break;
+    case MoveMaker::MoveResult::Destroyed:
+        _foundShip = false;
+        _foundDirection = false;
+        break;
+    case MoveMaker::MoveResult::Miss: case MoveMaker::MoveResult::NotMade:
+        if (_foundDirection) {
+            _invert_direction();
+            _baseCell = _firstHit;
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void NormalBotPlayer::_randomize_directions() {
+    std::shuffle(_randomDirections.begin(), _randomDirections.end(), std::mt19937{std::random_device{}()});
+    _directionIndex = 0;
 }
 
 void NormalBotPlayer::_init_shooting_sequence() {

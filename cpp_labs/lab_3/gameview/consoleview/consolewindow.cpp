@@ -1,5 +1,5 @@
 #include "consolewindow.h"
-#include <ncurses.h>
+#include <curses.h>
 #include <stdexcept>
 #include <cstdarg>
 

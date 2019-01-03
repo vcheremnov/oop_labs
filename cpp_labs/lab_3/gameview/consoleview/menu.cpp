@@ -1,5 +1,5 @@
 #include "menu.h"
-#include <ncurses.h>
+#include <curses.h>
 
 void ConsoleMenu::_draw_object(GameModel *model) {
     // draw header
