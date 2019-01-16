@@ -15,9 +15,15 @@ public:
     using value_type = std::tuple<Ts...>;
 
     // iterator
-    class iterator: public std::iterator<std::input_iterator_tag, value_type,
-                                         long, value_type*, value_type> {
+    class iterator {
     public:
+        // iterator typedefs
+        using iterator_category = std::input_iterator_tag;
+        using value_type = CSVParser::value_type;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
         // create end iterator
         iterator(): _isEnd(true) {}
 
