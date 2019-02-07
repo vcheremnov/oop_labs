@@ -5,9 +5,7 @@ import java.io.*;
 public class WordParser implements Parser {
     private boolean _hasReachedEOF = true;
     private BufferedReader _inputStream = null;
-
-    private static int STRING_BUILDER_CAPACITY = 32;
-    private StringBuilder word = new StringBuilder(STRING_BUILDER_CAPACITY);
+    private StringBuilder word = new StringBuilder();
 
     public WordParser(InputStream inputStream) {
         changeInputStream(inputStream);
@@ -49,7 +47,7 @@ public class WordParser implements Parser {
     @Override
     public void changeInputStream(InputStream inputStream) {
         if (inputStream == null) {
-            throw new NullPointerException("Passed null input stream");
+            throw new NullPointerException("Passed input stream is null");
         }
         _inputStream = new BufferedReader(new InputStreamReader(inputStream));
         _hasReachedEOF = false;

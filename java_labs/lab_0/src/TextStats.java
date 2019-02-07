@@ -8,14 +8,11 @@ final public class TextStats {
     private static TextStatsCollector _statsCollector = new WordStatsCollector();
 
     public static void main(String[] args) {
-        WordStatsCollector stats = new WordStatsCollector();
         if (args.length == 0) {
             // interactive mode
             _statsCollector.collectData(System.in);
             _statsCollector.printData(System.out);
-        } else if (args.length != 2) {
-            System.err.println("Usage: <input file> <output file>");
-        } else {
+        } else if (args.length == 2) {
             // file mode
             try (FileInputStream inputFile = new FileInputStream(args[0]);
                  FileOutputStream outputFile = new FileOutputStream(args[1])) {
@@ -24,6 +21,8 @@ final public class TextStats {
             } catch (IOException ex) {
                 System.out.println("Error: " + ex.getMessage());
             }
+        } else {
+            System.err.println("Usage: <input file> <output file>");
         }
     }
 }
