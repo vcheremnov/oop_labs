@@ -1,14 +1,14 @@
 package stats;
 
+import datawriter.DataWriter;
 import parser.Parser;
-import parser.WordParser;
 
-import java.io.*;
 import java.util.*;
 
-public class WordStatsCollector implements TextStatsCollector {
+public class WordStatsCollector {
+    private int _totalWords = 0;
     private List<WordItem> _wordList = null;
-    private final Comparator<WordItem> _comparator;
+    private Comparator<WordItem> _comparator;
 
     public WordStatsCollector() {
         this((o1, o2) -> {
@@ -20,29 +20,30 @@ public class WordStatsCollector implements TextStatsCollector {
     }
 
     public WordStatsCollector(Comparator<WordItem> comparator) {
+        setComparator(comparator);
+    }
+
+    public void setComparator(Comparator<WordItem> comparator) {
         _comparator = comparator;
     }
 
-    @Override
-    public void collectData(InputStream is) {
-        resetData();
-        Map<String, Integer> wordCount = _countWords(is);
+    public void collectWords(Parser parser) {
+        resetWords();
+        Map<String, Integer> wordCount = _countWords(parser);
         _fillWordList(wordCount);
-        _wordList.sort(_comparator);
+        sortWords();
     }
 
-    private Map<String, Integer> _countWords(InputStream is) {
+    private Map<String, Integer> _countWords(Parser parser) {
         Map<String, Integer> wordCount = new HashMap<>();
-        Parser parser = new WordParser(is);
 
         try {
-            String word;
-            while ((word = parser.getNextToken()) != null) {
+            for (String word; (word = parser.getNextToken()) != null; ++_totalWords) {
                 word = word.toLowerCase();
                 Integer counter = wordCount.getOrDefault(word, 0) + 1;
                 wordCount.put(word, counter);
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.err.println("Error: " + ex.getMessage());
         }
 
@@ -54,27 +55,26 @@ public class WordStatsCollector implements TextStatsCollector {
         wordCount.forEach((word, count) -> _wordList.add(new WordItem(word, count)));
     }
 
-    @Override
-    public void printData(OutputStream os) {
-        Integer totalCount = 0;
-        // count total number of words
-        for (WordItem item : _wordList) {
-            totalCount += item.getCount();
-        }
-        // print stats in csv format
-        try {
-            PrintWriter outStream = new PrintWriter(os, true);
-            for (WordItem record : _wordList) {
-                outStream.printf("%s,%d,%g\n", record.getWord(), record.getCount(),
-                        (double) record.getCount() / totalCount);
-            }
-        } catch (Exception ex) {
-            System.err.println("Error: " + ex.getMessage());
+    public void printWordStats(DataWriter dataWriter) {
+        String[] wordStats = new String[3];
+        for (WordItem wordItem : _wordList) {
+            wordStats[0] = wordItem.getWord();
+            wordStats[1] = wordItem.getCount().toString();
+            wordStats[2] = String.format("%g", (double) wordItem.getCount() / _totalWords * 100.0);
+            dataWriter.write(wordStats);
         }
     }
 
-    @Override
-    public void resetData() {
+    public void sortWords() {
+        _wordList.sort(_comparator);
+    }
+
+    public List<WordItem> getWords() {
+        return _wordList;
+    }
+
+    public void resetWords() {
         _wordList = null;
+        _totalWords = 0;
     }
 }

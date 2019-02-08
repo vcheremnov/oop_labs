@@ -1,23 +1,24 @@
-import stats.TextStatsCollector;
+import datawriter.CSVWriter;
+import parser.WordParser;
 import stats.WordStatsCollector;
 
 import java.io.*;
 
 
 final public class TextStats {
-    private static TextStatsCollector _statsCollector = new WordStatsCollector();
+    private static WordStatsCollector _statsCollector = new WordStatsCollector();
 
     public static void main(String[] args) {
         if (args.length == 0) {
             // interactive mode
-            _statsCollector.collectData(System.in);
-            _statsCollector.printData(System.out);
+            _statsCollector.collectWords(new WordParser(System.in));
+            _statsCollector.printWordStats(new CSVWriter(System.out));
         } else if (args.length == 2) {
             // file mode
             try (FileInputStream inputFile = new FileInputStream(args[0]);
                  FileOutputStream outputFile = new FileOutputStream(args[1])) {
-                _statsCollector.collectData(inputFile);
-                _statsCollector.printData(outputFile);
+                _statsCollector.collectWords(new WordParser(inputFile));
+                _statsCollector.printWordStats(new CSVWriter(outputFile));
             } catch (IOException ex) {
                 System.out.println("Error: " + ex.getMessage());
             }
