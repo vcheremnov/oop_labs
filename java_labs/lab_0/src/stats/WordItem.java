@@ -1,6 +1,6 @@
 package stats;
 
-class WordItem {
+public class WordItem {
     private String _word;
     private Integer _count;
 
