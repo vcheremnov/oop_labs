@@ -40,7 +40,7 @@ public class WordStatsCollector {
         try {
             for (String word; (word = parser.getNextToken()) != null; ++_totalWords) {
                 word = word.toLowerCase();
-                Integer counter = wordCount.getOrDefault(word, 0) + 1;
+                int counter = wordCount.getOrDefault(word, 0) + 1;
                 wordCount.put(word, counter);
             }
         } catch (Exception ex) {

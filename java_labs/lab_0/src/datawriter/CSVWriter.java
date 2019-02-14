@@ -14,6 +14,7 @@ public class CSVWriter extends StreamDataWriter {
     @Override
     public void setOutputStream(OutputStream outputStream) {
         _outStream = new PrintWriter(outputStream, true);
+        _columnsPerLine = -1;
     }
 
     @Override

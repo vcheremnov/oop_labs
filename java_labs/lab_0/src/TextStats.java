@@ -20,7 +20,7 @@ final public class TextStats {
                 _statsCollector.collectWords(new WordParser(inputFile));
                 _statsCollector.printWordStats(new CSVWriter(outputFile));
             } catch (IOException ex) {
-                System.out.println("Error: " + ex.getMessage());
+                System.err.println("Error: " + ex.getMessage());
             }
         } else {
             System.err.println("Usage: <input file> <output file>");
