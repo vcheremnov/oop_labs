@@ -3,20 +3,22 @@ package workflow;
 import workflow.exceptions.InvalidFormatException;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WorkflowPlan implements Iterable<UnitInfo> {
-    Map<Integer, UnitInfo> _units = new HashMap<>();
-    List<Integer> _plan = new ArrayList<>();
+    private Map<String, UnitInfo> _units = new HashMap<>();
+    private List<String> _plan = new ArrayList<>();
 
-    public WorkflowPlan(String[] configText) {
-        WorkflowReader reader = new WorkflowReader(configText);
-        reader.fillWorkflowPlan();
+    public WorkflowPlan(String[] workflowConfig) {
+        WorkflowParser parser = new WorkflowParser();
+        parser.fillWorkflowPlan(workflowConfig);
     }
 
     @Override
     public Iterator<UnitInfo> iterator() {
         return new Iterator<>() {
-            private final Iterator<Integer> _iter = _plan.iterator();
+            private final Iterator<String> _iter = _plan.iterator();
 
             @Override
             public boolean hasNext() {
@@ -25,69 +27,88 @@ public class WorkflowPlan implements Iterable<UnitInfo> {
 
             @Override
             public UnitInfo next() {
-                Integer unitID = _iter.next();
+                String unitID = _iter.next();
                 return _units.get(unitID);
             }
         };
     }
 
-    private class WorkflowReader {
-        String[] _configText;
+    private class WorkflowParser {
+        Matcher _descRecordMatcher;
+        Matcher _workflowLineMatcher;
 
-        public WorkflowReader(String[] configText) {
-            _configText = configText;
+        public WorkflowParser() {
+            // compile regex for description record format recognition (<id> = <word1> <word2> ....)
+            Pattern recordPattern = Pattern.compile("\\s*\\d+\\s*=(\\s*\\S+\\s*)+");
+            _descRecordMatcher = recordPattern.matcher("");
+            // workflow line regex (id_1->id_2->...->id_n or empty string)
+            Pattern workflowPattern = Pattern.compile("(^$)|(\\d+(->\\d+)*)");
+            _workflowLineMatcher = workflowPattern.matcher("");
         }
 
-        public void fillWorkflowPlan() {
-            int workflowBeg = _parseDescriptionBlock(_configText);
-            String[] workflowBlock = Arrays.copyOfRange(_configText, workflowBeg, _configText.length);
-            _parseWorkflowBlock(workflowBlock);
+        public void fillWorkflowPlan(String[] workflowConfig) {
+            _units.clear();
+            _plan.clear();
+
+            int workflowBeg = _parseDescriptionBlock(workflowConfig);
+
+            // concatenate lines in the workflow block
+            int totalLength = 0;
+            for (int lineNo = workflowBeg; lineNo < workflowConfig.length; ++lineNo) {
+                totalLength += workflowConfig[lineNo].length();
+            }
+            StringBuilder lineConcat = new StringBuilder(totalLength);
+            for (int lineNo = workflowBeg; lineNo < workflowConfig.length; ++lineNo) {
+                lineConcat.append(workflowConfig[lineNo]);
+            }
+            String workflowLine = lineConcat.toString().replaceAll("\\s+", "");
+
+            _parseWorkflowLine(workflowLine);
         }
 
-        private int _parseDescriptionBlock(String[] configText) {
-            int descBeg = 1 + _searchFor("desc", configText, 0);
-            int descEnd = _searchFor("csed", configText, descBeg);
+        private int _parseDescriptionBlock(String[] descBlock) {
+            int descBeg = 1 + _searchFor("desc", descBlock, 0);
+            int descEnd = _searchFor("csed", descBlock, descBeg);
             for (int lineNo = descBeg; lineNo < descEnd; ++lineNo) {
-                _parseDescriptionRecord(configText[lineNo]);
+                _parseDescriptionRecord(descBlock[lineNo]);
             }
 
             return descEnd + 1;
 
         }
 
-        private void _parseDescriptionRecord(String record) {
-            String[] recordParts = record.split("=", 2);
-
-            if (recordParts.length == 1) {
-                throw new InvalidFormatException(record + ": \"=\" was not found");
+        private void _parseDescriptionRecord(String descRecord) {
+            _descRecordMatcher.reset(descRecord);
+            if (!_descRecordMatcher.matches()) {
+                throw new InvalidFormatException(descRecord + ": invalid format; " +
+                        "must be \"unit_id = unit_name args...\"");
             }
 
-            String stringId = recordParts[0].replaceAll("\\s+", "");
-            Integer id;
-            try {
-                id = Integer.parseInt(stringId);
-            } catch (Exception ex) {
-                throw new InvalidFormatException(record + " : Failed to parse unit id (" + stringId + ")");
-            }
+            // split into two parts: [unit id] and [unit name, unit args]
+            String[] recordParts = descRecord.split("=", 2);
+
+            // parse unit id
+            String id = recordParts[0].replaceAll("\\s+", "");
             if (_units.containsKey(id)) {
-                throw new InvalidFormatException(record + ": Duplicate unit id (" + id + ")");
+                throw new InvalidFormatException(descRecord + ": Duplicate unit id (" + id + ")");
             }
 
+            // parse unit name
             StringTokenizer tokenizer = new StringTokenizer(recordParts[1]);
-            if (!tokenizer.hasMoreTokens()) {
-                throw new InvalidFormatException(record + ": Unit name was not found");
-            }
             String unitName = tokenizer.nextToken();
 
+            // parse unit args
             List<String> argList = new ArrayList<>();
             while (tokenizer.hasMoreTokens()) {
                 argList.add(tokenizer.nextToken());
             }
 
+            // fill info about the unit
             UnitInfo unitInfo = new UnitInfo();
             unitInfo.setUnitName(unitName);
             unitInfo.setUnitArgs(argList.toArray(new String[0]));
 
+            // add to the units database
             _units.put(id, unitInfo);
         }
 
@@ -101,36 +122,29 @@ public class WorkflowPlan implements Iterable<UnitInfo> {
                 ++lineNo;
             }
             if (lineNo == lines.length) {
-                throw new InvalidFormatException(String.format("Invalid format: the keyword \"%s\" is missing", keyword));
+                throw new InvalidFormatException("Invalid format of the workflow config file: " +
+                        "the keyword \"" + keyword + "\" is missing");
             }
 
             return lineNo;
         }
 
-        private void _parseWorkflowBlock(String[] workflowBlock) {
-            StringBuilder lineConcat = new StringBuilder();
-            for (String line : workflowBlock) {
-                lineConcat.append(line);
+        private void _parseWorkflowLine(String workflowLine) {
+            _workflowLineMatcher.reset(workflowLine);
+            if (!_workflowLineMatcher.matches()) {
+                throw new InvalidFormatException("Invalid format of the workflow line; " +
+                        "must be \"id_k1->id_k2->...->id_km\", where id_ki is from the description block");
             }
-            String workflowLine = lineConcat.toString().replaceAll("\\s+", "");
 
-            Scanner scanner = new Scanner(workflowLine);
-            scanner.useDelimiter("->");
-
-            List<Integer> idList = new ArrayList<Integer>();
-            while (scanner.hasNext()) {
-                if (!scanner.hasNextInt()) {
-                    throw new InvalidFormatException("Invalid format: found not a number in the workflow line");
-                }
-                int id = scanner.nextInt();
+            String[] idArray = workflowLine.split("->");
+            for (String id: idArray) {
                 if (!_units.containsKey(id)) {
                     throw new InvalidFormatException("Invalid format of the workflow line: " +
-                            "found a number not from the description block");
+                            "id \"" + id + "\" is not from the description block");
                 }
-                idList.add(id);
             }
 
-            _plan = idList;
+            _plan = Arrays.asList(idArray);
         }
     }
 }

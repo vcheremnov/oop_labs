@@ -4,8 +4,6 @@ import units.exceptions.ExecutionFailedException;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class ReadUnit implements Unit {
@@ -25,7 +23,7 @@ public class ReadUnit implements Unit {
 
             return fileLines.toArray(new String[0]);
         } catch (Exception ex) {
-            throw new ExecutionFailedException("Execution failure", ex);
+            throw new ExecutionFailedException("ReadUnit execution failed: " + ex.getMessage(), ex);
         }
 
     }

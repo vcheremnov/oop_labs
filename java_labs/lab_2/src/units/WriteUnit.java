@@ -20,7 +20,7 @@ public class WriteUnit implements Unit {
                 outputFile.println(line);
             }
         } catch (Exception ex) {
-            throw new ExecutionFailedException("Execution failure", ex);
+            throw new ExecutionFailedException("WriteUnit execution failure: " + ex.getMessage(), ex);
         }
 
         return null;

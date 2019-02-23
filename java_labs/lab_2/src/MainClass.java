@@ -1,13 +1,12 @@
-import units.*;
 import workflow.UnitInfo;
 import workflow.WorkflowExecutor;
 import workflow.WorkflowPlan;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
-import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainClass {
     public static void main(String[] args) {
@@ -29,21 +28,12 @@ public class MainClass {
             plan = new WorkflowPlan(fileLines.toArray(new String[0]));
 
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            ex.printStackTrace();
             return;
         }
 
-//        for (UnitInfo unitInfo: plan) {
-//            System.out.print(unitInfo.getUnitName() + ": ");
-//            for (String arg: unitInfo.getUnitArgs()) {
-//                System.out.print(arg + " ");
-//            }
-//            System.out.println();
-//        }
-
         WorkflowExecutor executor = new WorkflowExecutor(plan);
         executor.work();
-
 
     }
 }
