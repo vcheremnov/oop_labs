@@ -9,11 +9,12 @@ public class GrepUnit implements Unit {
             throw new IllegalArgumentException("GrepUnit error: input is null");
         }
         if (args.length != 1) {
-            throw new IllegalArgumentException("GrepUnit error: exactly one search word is expected");
+            throw new IllegalArgumentException("GrepUnit error: exactly one search substring is expected");
         }
 
-       return Arrays.stream(input)
-                    .filter(line -> line.contains(args[0]))
-                    .toArray(String[]::new);
+        String requiredSubstring = args[0];
+        return Arrays.stream(input)
+                     .filter(line -> line.contains(requiredSubstring))
+                     .toArray(String[]::new);
     }
 }

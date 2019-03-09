@@ -7,6 +7,9 @@ public class WorkflowExecutor {
     private WorkflowPlan _plan;
 
     public WorkflowExecutor(WorkflowPlan plan) {
+        if (plan == null) {
+            throw new IllegalArgumentException("plan is null");
+        }
         _plan = plan;
     }
 

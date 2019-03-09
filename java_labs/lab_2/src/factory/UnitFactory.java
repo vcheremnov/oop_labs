@@ -13,13 +13,17 @@ import java.util.Properties;
 
 public class UnitFactory {
     private static final String _configFileName = "config.properties";
-    private static UnitFactory _instance;
+    private static volatile UnitFactory _instance;
 
     private Map<String, Class<?>> _unitClasses = new HashMap<>();
 
     public static UnitFactory getInstance() {
         if (_instance == null) {
-            _instance = new UnitFactory();
+            synchronized (UnitFactory.class) {
+                if (_instance == null) {
+                    _instance = new UnitFactory();
+                }
+            }
         }
         return _instance;
     }
@@ -49,7 +53,7 @@ public class UnitFactory {
         Properties props = new Properties();
         String unitClassName = null;
 
-        try (InputStream configFile = getClass().getResourceAsStream(_configFileName)){
+        try (InputStream configFile = getClass().getResourceAsStream(_configFileName)) {
             if (configFile == null) {
                 throw new LoadingFailedException("Failed to initialize the unit factory: " +
                         "failed to open the config file \"" + _configFileName + "\"");
@@ -57,6 +61,7 @@ public class UnitFactory {
 
             props.load(configFile);
             for (String unitName: props.stringPropertyNames()) {
+                // is it really needed?? ...
                 if (_unitClasses.containsKey(unitName)) {
                     throw new LoadingFailedException("Failed to initialize the unit factory: " +
                             "duplicate unit name \"" + unitName + "\"");

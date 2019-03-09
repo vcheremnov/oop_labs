@@ -15,7 +15,8 @@ public class WriteUnit implements Unit {
             throw new IllegalArgumentException("WriteUnit error: output file name is expected");
         }
 
-        try (PrintWriter outputFile = new PrintWriter(new FileOutputStream(args[0]))) {
+        String filename = args[0];
+        try (PrintWriter outputFile = new PrintWriter(new FileOutputStream(filename))) {
             for (String line: input) {
                 outputFile.println(line);
             }

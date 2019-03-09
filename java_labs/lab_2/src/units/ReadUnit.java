@@ -3,8 +3,6 @@ package units;
 import units.exceptions.ExecutionFailedException;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ReadUnit implements Unit {
     @Override
@@ -13,15 +11,9 @@ public class ReadUnit implements Unit {
             throw new IllegalArgumentException("ReadUnit error: input file name is expected");
         }
 
-        try (BufferedReader inputFile = new BufferedReader(new FileReader(args[0]))) {
-            List<String> fileLines = new ArrayList<>();
-
-            String line;
-            while ((line = inputFile.readLine()) != null) {
-                fileLines.add(line);
-            }
-
-            return fileLines.toArray(new String[0]);
+        String filename = args[0];
+        try (BufferedReader inputFile = new BufferedReader(new FileReader(filename))) {
+            return inputFile.lines().toArray(String[]::new);
         } catch (Exception ex) {
             throw new ExecutionFailedException("ReadUnit execution failed: " + ex.getMessage(), ex);
         }

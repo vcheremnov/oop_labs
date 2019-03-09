@@ -10,8 +10,9 @@ public class ReplaceUnit implements Unit {
             throw new IllegalArgumentException("ReplaceUnit error: exactly two words are expected");
         }
 
+        String target = args[0], replacement = args[1];
         for (int i = 0; i < input.length; ++i) {
-            input[i] = input[i].replace(args[0], args[1]);
+            input[i] = input[i].replace(target, replacement);
         }
 
         return input;

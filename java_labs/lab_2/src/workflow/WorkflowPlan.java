@@ -67,14 +67,31 @@ public class WorkflowPlan implements Iterable<UnitInfo> {
         }
 
         private int _parseDescriptionBlock(String[] descBlock) {
-            int descBeg = 1 + _searchFor("desc", descBlock, 0);
-            int descEnd = _searchFor("csed", descBlock, descBeg);
-            for (int lineNo = descBeg; lineNo < descEnd; ++lineNo) {
+            int descBeg = _findKeyword("desc", descBlock, 0);
+            int descEnd = _findKeyword("csed", descBlock, descBeg + 1);
+            for (int lineNo = descBeg + 1; lineNo < descEnd; ++lineNo) {
                 _parseDescriptionRecord(descBlock[lineNo]);
             }
 
             return descEnd + 1;
 
+        }
+
+        private int _findKeyword(String keyword, String[] lines, int startPos) {
+            int lineNo = startPos;
+            while (lineNo < lines.length) {
+                String line = lines[lineNo].replaceAll("\\s+", "");
+                if (line.equals(keyword)) {
+                    break;
+                }
+                ++lineNo;
+            }
+            if (lineNo == lines.length) {
+                throw new InvalidFormatException("Invalid format of the workflow config file: " +
+                        "the keyword \"" + keyword + "\" is missing");
+            }
+
+            return lineNo;
         }
 
         private void _parseDescriptionRecord(String descRecord) {
@@ -112,28 +129,11 @@ public class WorkflowPlan implements Iterable<UnitInfo> {
             _units.put(id, unitInfo);
         }
 
-        private int _searchFor(String keyword, String[] lines, int startPos) {
-            int lineNo = startPos;
-            while (lineNo < lines.length) {
-                String line = lines[lineNo].replaceAll("\\s+", "");
-                if (line.equals(keyword)) {
-                    break;
-                }
-                ++lineNo;
-            }
-            if (lineNo == lines.length) {
-                throw new InvalidFormatException("Invalid format of the workflow config file: " +
-                        "the keyword \"" + keyword + "\" is missing");
-            }
-
-            return lineNo;
-        }
-
         private void _parseWorkflowLine(String workflowLine) {
             _workflowLineMatcher.reset(workflowLine);
             if (!_workflowLineMatcher.matches()) {
                 throw new InvalidFormatException("Invalid format of the workflow line; " +
-                        "must be \"id_k1->id_k2->...->id_km\", where id_ki is from the description block");
+                        "must be \"id_k1->id_k2->...->id_km\", where id_ki are from the description block");
             }
 
             String[] idArray = workflowLine.split("->");
