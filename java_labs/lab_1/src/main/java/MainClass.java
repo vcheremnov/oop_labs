@@ -1,3 +1,4 @@
+
 import workflow.WorkflowExecutor;
 import workflow.WorkflowPlan;
 
@@ -10,7 +11,7 @@ public class MainClass {
 
     public static void main(String[] args) {
         if (args.length != REQUIRED_ARGS_NUM) {
-            System.err.println("Usage: java " + MainClass.class.getName() + ".java <workflow file>");
+            System.err.println("Usage: java " + MainClass.class.getName() + " <main.workflow file>");
             System.exit(ERROR_CODE);
         }
 

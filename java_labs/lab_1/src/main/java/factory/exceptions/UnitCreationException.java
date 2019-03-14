@@ -1,6 +1,6 @@
 package factory.exceptions;
 
-public class UnitCreationException extends RuntimeException {
+public class UnitCreationException extends UnitFactoryException {
     public UnitCreationException() {
         super();
     }
