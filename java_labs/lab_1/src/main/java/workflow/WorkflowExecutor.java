@@ -1,7 +1,9 @@
 package workflow;
 
 import factory.UnitFactory;
+import factory.exceptions.UnitFactoryException;
 import units.Unit;
+import units.exceptions.UnitExecutionException;
 
 public class WorkflowExecutor {
     private WorkflowPlan _plan;
@@ -20,7 +22,7 @@ public class WorkflowExecutor {
                 Unit unit = UnitFactory.getInstance().getUnit(unitInfo.getUnitName());
                 input = unit.execute(input, unitInfo.getUnitArgs());
             }
-        } catch (RuntimeException ex) {
+        } catch (UnitFactoryException | UnitExecutionException ex) {
             System.err.println(ex.getMessage());
         }
     }

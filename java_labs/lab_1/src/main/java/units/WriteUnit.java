@@ -1,17 +1,17 @@
 package units;
 
-import units.exceptions.ExecutionFailedException;
+import units.exceptions.UnitExecutionException;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 public class WriteUnit implements Unit {
     @Override
-    public String[] execute(String[] input, String... args) {
+    public String[] execute(String[] input, String... args) throws UnitExecutionException {
         if (input == null) {
             throw new IllegalArgumentException("WriteUnit error: input is null");
         }
-        if (args.length == 0) {
+        if (args.length != 1) {
             throw new IllegalArgumentException("WriteUnit error: output file name is expected");
         }
 
@@ -21,9 +21,9 @@ public class WriteUnit implements Unit {
                 outputFile.println(line);
             }
         } catch (Exception ex) {
-            throw new ExecutionFailedException("WriteUnit execution failure: " + ex.getMessage(), ex);
+            throw new UnitExecutionException("WriteUnit execution failure: " + ex.getMessage(), ex);
         }
-
-        return null;
+        // return input for further processing
+        return input;
     }
 }
