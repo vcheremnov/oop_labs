@@ -1,13 +1,18 @@
 package units;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import units.exceptions.UnitExecutionException;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class WriteUnit implements Unit {
+    private static final Logger logger = LogManager.getLogger(WriteUnit.class);
     @Override
     public String[] execute(String[] input, String... args) throws UnitExecutionException {
+        logger.info("Executing WriteUnit with args " + Arrays.asList(args));
         if (input == null) {
             throw new IllegalArgumentException("WriteUnit error: input is null");
         }

@@ -3,6 +3,8 @@ package factory;
 import factory.exceptions.UnitFactoryLoadingException;
 import factory.exceptions.UnitCreationException;
 import factory.exceptions.UnitNotFoundException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import units.Unit;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class UnitFactory {
+    private static final Logger logger = LogManager.getLogger(UnitFactory.class);
     private static final String _configFileName = "config.properties";
     private static volatile UnitFactory _instance;
 
@@ -29,21 +32,26 @@ public class UnitFactory {
     }
 
     public Unit getUnit(String unitName) throws UnitNotFoundException, UnitCreationException {
+        logger.info(String.format("Getting \"%s\" unit", unitName));
         Class<?> unitClass = _unitClasses.get(unitName);
         if (unitClass == null) {
-            throw new UnitNotFoundException(String.format("Unit \"%s\" was not registered", unitName));
+            UnitNotFoundException ex = new UnitNotFoundException(String.format("Unit \"%s\" was not registered", unitName));
+            logger.error("Failed to get the unit", ex);
+            throw ex;
         }
 
         Unit unit;
         try {
             Object unitObj = unitClass.getConstructor().newInstance();
             if (!(unitObj instanceof Unit)) {
-                throw new UnitCreationException(String.format("Failed to create \"%s\" unit: " +
-                        "not an instance of the interface Unit", unitName));
+                UnitCreationException ex = new UnitCreationException(unitName + " is not an instance of the interface Unit");
+                logger.error("Failed to get the unit", ex);
+                throw ex;
             }
             unit = (Unit)unitObj;
         } catch (ReflectiveOperationException | RuntimeException ex) {
-            throw new UnitCreationException(String.format("Failed to create \"%s\" unit", unitName), ex);
+            logger.error("Failed to get the unit", ex);
+            throw new UnitCreationException(ex);
         }
 
         return unit;
@@ -53,18 +61,23 @@ public class UnitFactory {
         Properties props = new Properties();
         String unitClassName = null;
 
+        logger.info("UnitFactory initialization");
         try (InputStream configFile = UnitFactory.class.getClassLoader().getResourceAsStream(_configFileName)) {
             if (configFile == null) {
-                throw new UnitFactoryLoadingException("Failed to initialize the unit factory: " +
-                        "failed to open the config file \"" + _configFileName + "\"");
+                UnitFactoryLoadingException ex = new UnitFactoryLoadingException("Failed to open the config file \""
+                        + _configFileName + "\"");
+                logger.error("UnitFactory initialization failure", ex);
+                throw ex;
             }
 
             props.load(configFile);
             for (String unitName: props.stringPropertyNames()) {
                 // is it really needed?? ...
                 if (_unitClasses.containsKey(unitName)) {
-                    throw new UnitFactoryLoadingException("Failed to initialize the unit factory: " +
-                            "duplicate unit name \"" + unitName + "\"");
+                    UnitFactoryLoadingException ex = new UnitFactoryLoadingException("Duplicate unit name \""
+                            + unitName + "\"");
+                    logger.error("UnitFactory initialization failure", ex);
+                    throw ex;
                 }
 
                 unitClassName = props.getProperty(unitName);
@@ -72,12 +85,9 @@ public class UnitFactory {
                 _unitClasses.put(unitName, unitClass);
             }
 
-        } catch (ClassNotFoundException ex) {
-            throw new UnitFactoryLoadingException("Failed to initialize the unit factory: " +
-                    "class \"" + unitClassName + "\" was not found", ex);
-        } catch (IOException ex) {
-            throw new UnitFactoryLoadingException("Failed to initialize the unit factory: " +
-                    "failed to read the config file \"" + _configFileName + "\"", ex);
+        } catch (ClassNotFoundException | IOException ex) {
+            logger.error("UnitFactory initialization failure", ex);
+            throw new UnitFactoryLoadingException(ex);
         }
     }
 

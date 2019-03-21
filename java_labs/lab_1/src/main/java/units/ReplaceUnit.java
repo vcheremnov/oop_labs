@@ -1,8 +1,15 @@
 package units;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.Arrays;
+
 public class ReplaceUnit implements Unit {
+    private static final Logger logger = LogManager.getLogger(ReplaceUnit.class);
     @Override
     public String[] execute(String[] input, String... args) {
+        logger.info("Executing ReplaceUnit with args " + Arrays.asList(args));
         if (input == null) {
             throw new IllegalArgumentException("ReplaceUnit error: input is null");
         }

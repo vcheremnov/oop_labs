@@ -1,0 +1,18 @@
+[INFO ] 2019-03-21 20:08:34.613 [main] MainClass - Startup
+[INFO ] 2019-03-21 20:08:34.616 [main] MainClass - Opening workflow configuration file
+[INFO ] 2019-03-21 20:08:34.617 [main] MainClass - Reading the file
+[INFO ] 2019-03-21 20:08:34.620 [main] MainClass - Filling a workflow plan
+[INFO ] 2019-03-21 20:08:34.626 [main] WorkflowExecutor - Executing the workflow plan
+[INFO ] 2019-03-21 20:08:34.628 [main] UnitFactory - UnitFactory initialization
+[INFO ] 2019-03-21 20:08:34.631 [main] UnitFactory - Getting "readfile" unit
+[INFO ] 2019-03-21 20:08:34.631 [main] ReadUnit - Executing ReadUnit with args [crusoe.txt]
+[INFO ] 2019-03-21 20:08:34.675 [main] UnitFactory - Getting "grep" unit
+[INFO ] 2019-03-21 20:08:34.675 [main] GrepUnit - Executing GrepUnit with args [if]
+[INFO ] 2019-03-21 20:08:34.682 [main] UnitFactory - Getting "sort" unit
+[INFO ] 2019-03-21 20:08:34.683 [main] SortUnit - Executing SortUnit
+[INFO ] 2019-03-21 20:08:34.684 [main] UnitFactory - Getting "replace" unit
+[INFO ] 2019-03-21 20:08:34.685 [main] ReplaceUnit - Executing ReplaceUnit with args [if, else]
+[INFO ] 2019-03-21 20:08:34.731 [main] UnitFactory - Getting "writefile" unit
+[INFO ] 2019-03-21 20:08:34.731 [main] WriteUnit - Executing WriteUnit with args [result.txt]
+[INFO ] 2019-03-21 20:08:34.758 [main] WorkflowExecutor - Execution is done
+[INFO ] 2019-03-21 20:08:34.759 [main] MainClass - Shutdown

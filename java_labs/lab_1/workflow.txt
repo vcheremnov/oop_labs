@@ -1,0 +1,9 @@
+desc
+1 = readfile crusoe.txt
+2 = writefile result.txt
+3 = sort
+4 = grep if
+10 = grep then
+5 = replace if else
+csed
+1 -> 4 -> 3 -> 5 -> 2
