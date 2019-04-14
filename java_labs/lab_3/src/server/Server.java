@@ -198,34 +198,15 @@ public class Server implements AutoCloseable {
             // TODO: add try catch for char coding exception and clear the message there
             attachment.message.readMessageFrom(attachment.inputBuffer);
             if (attachment.message.messageIsReady()) {
-                processMessage(attachment.message.getMessageAsString());
+                String request = attachment.message.getMessageAsString();
+                String response = messageHandler.handleMessage(request);
                 attachment.message.clear();
+                sendMessage(key, response);
             }
         }
     }
 
-    class Student {
-        String name;
-        int age;
-    }
-
-    private void processMessage(String msg) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting();
-
-        System.out.println(msg);
-        Gson gson = gsonBuilder.create();
-        try {
-            Student student = gson.fromJson(msg, Student.class);
-            System.out.println("Received a message:");
-            System.out.println(gson.toJson(student));
-        } catch (JsonSyntaxException ex) {
-            System.err.println("Json syntax error:");
-            ex.printStackTrace();
-        }
-    }
-
-    private void respond(SelectionKey key) {
+    private void sendMessage(SelectionKey key, String message) {
 
     }
 
