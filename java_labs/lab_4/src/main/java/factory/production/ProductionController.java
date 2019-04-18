@@ -7,10 +7,10 @@ import java.util.Objects;
 public class ProductionController {
     private Thread thread;
     private final Warehouse<Car> warehouse;
-    private final CarFactory carFactory;
+    private final AssemblyShop assemblyShop;
 
-    public ProductionController(CarFactory carFactory, Warehouse<Car> warehouse) {
-        this.carFactory = Objects.requireNonNull(carFactory, "Car carFactory is null");
+    public ProductionController(AssemblyShop assemblyShop, Warehouse<Car> warehouse) {
+        this.assemblyShop = Objects.requireNonNull(assemblyShop, "Car assemblyShop is null");
         this.warehouse = Objects.requireNonNull(warehouse, "Warehouse is null");
     }
 
@@ -20,11 +20,11 @@ public class ProductionController {
                 synchronized (warehouse) {
                     while (!Thread.currentThread().isInterrupted()) {
                         int emptyPlaces = warehouse.getCapacity() - warehouse.getItemsNumber();
-                        int incomingCars = carFactory.incomingCarsNumber();
+                        int incomingCars = assemblyShop.getIncomingCars();
                         int requiredCars = emptyPlaces - incomingCars;
 
                         if (requiredCars > 0) {
-                            carFactory.produceCars(requiredCars);
+                            assemblyShop.produceCars(requiredCars);
                         }
 
                         warehouse.wait();
@@ -38,6 +38,8 @@ public class ProductionController {
     }
 
     public void stopSupervision() {
-        thread.interrupt();
+        if (thread != null) {
+            thread.interrupt();
+        }
     }
 }

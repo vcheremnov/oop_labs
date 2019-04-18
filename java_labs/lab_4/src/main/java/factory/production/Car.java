@@ -3,13 +3,11 @@ package factory.production;
 import factory.details.Accessory;
 import factory.details.Body;
 import factory.details.Engine;
+import misc.Identifiable;
 
 import java.util.Objects;
-import java.util.UUID;
 
-public class Car {
-    private UUID id = UUID.randomUUID();
-
+public class Car extends Identifiable {
     private Engine engine;
     private Body body;
     private Accessory accessory;
@@ -18,10 +16,6 @@ public class Car {
         this.engine = Objects.requireNonNull(engine, "engine is null");
         this.body = Objects.requireNonNull(body, "car body is null");
         this.accessory = Objects.requireNonNull(accessory, "accessory is null");
-    }
-
-    public String getID() {
-        return id.toString();
     }
 
     public String getEngineID() {

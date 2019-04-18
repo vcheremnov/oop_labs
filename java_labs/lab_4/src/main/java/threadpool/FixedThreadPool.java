@@ -2,7 +2,6 @@ package threadpool;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -17,7 +16,7 @@ public class FixedThreadPool implements ThreadPool {
     private AtomicBoolean isShutdown = new AtomicBoolean(false);
     private AtomicInteger activeWorkersCount = new AtomicInteger();
 
-    private final Object awaitBlock = new Object();
+    private final Object awaitLock = new Object();
 
     public FixedThreadPool(int numThreads) {
         if (numThreads <= 0) {
@@ -57,8 +56,14 @@ public class FixedThreadPool implements ThreadPool {
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
+
         List<Runnable> taskList = new ArrayList<>(tasks.size());
         tasks.drainTo(taskList);
+
+        for (PoolWorker worker: workers) {
+            worker.interrupt();
+        }
+
         return taskList;
     }
 
@@ -79,9 +84,9 @@ public class FixedThreadPool implements ThreadPool {
 
     @Override
     public void awaitTermination() throws InterruptedException {
-        synchronized (awaitBlock) {
+        synchronized (awaitLock) {
             while (isRunning.get()) {
-                awaitBlock.wait();
+                awaitLock.wait();
             }
         }
     }
@@ -89,9 +94,9 @@ public class FixedThreadPool implements ThreadPool {
     @Override
     public void awaitTermination(long timeout) throws InterruptedException {
         // TODO: add loop with "wait(..)" where timeout decrements with time
-        synchronized (awaitBlock) {
+        synchronized (awaitLock) {
             if (isRunning.get()) {
-                awaitBlock.wait(timeout);
+                awaitLock.wait(timeout);
             }
         }
     }
@@ -99,14 +104,19 @@ public class FixedThreadPool implements ThreadPool {
     private class PoolWorker extends Thread {
         @Override
         public void run() {
-            while (!(Thread.currentThread().isInterrupted() || isShutdown() && tasks.isEmpty())) {
-                // TODO: find out whether tasks can be emptied before entering try block...
+            while (!isInterrupted()) {
                 try {
-                    Runnable task = tasks.take();
+                    Runnable task = isShutdown() ? tasks.poll() : tasks.take();
+                    if (task == null) {
+                        break;
+                    }
                     task.run();
-                } catch (InterruptedException | RuntimeException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    System.err.printf("Pool worker \"%s\" has been interrupted\n", this.getName());
                     Thread.currentThread().interrupt();
+                } catch (RuntimeException e) {
+                    System.err.println("Task has failed:");
+                    e.printStackTrace();
                 }
             }
 
@@ -115,9 +125,9 @@ public class FixedThreadPool implements ThreadPool {
 
         private void finishWork() {
             if (activeWorkersCount.decrementAndGet() == 0) {
-                synchronized (awaitBlock) {
+                synchronized (awaitLock) {
                     isRunning.set(false);
-                    awaitBlock.notifyAll();
+                    awaitLock.notifyAll();
                 }
             }
         }
