@@ -5,6 +5,8 @@ import misc.Observable;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,10 +38,10 @@ public class Warehouse <T> extends Observable {
         }
 
         int oldValue = itemsNumber.getAndIncrement();
-        items.add(item);
-        notify();
-
         firePropertyChanged(Property.ITEMS_NUMBER, oldValue, itemsNumber.get());
+        items.add(item);
+
+        notifyAll();
     }
 
     public synchronized T takeItem() throws InterruptedException {
@@ -48,12 +50,24 @@ public class Warehouse <T> extends Observable {
         }
 
         int oldValue = itemsNumber.getAndDecrement();
+        firePropertyChanged(Property.ITEMS_NUMBER, oldValue, itemsNumber.get());
         T item = items.remove();
+
         notifyAll();
 
+        return item;
+    }
+
+    public synchronized List<T> takeAllItems() {
+        List<T> itemsList = new ArrayList<>(items);
+        items.clear();
+
+        int oldValue = itemsNumber.getAndSet(0);
         firePropertyChanged(Property.ITEMS_NUMBER, oldValue, itemsNumber.get());
 
-        return item;
+        notifyAll();
+
+        return itemsList;
     }
 
     public int getItemsNumber() {

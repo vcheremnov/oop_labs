@@ -20,13 +20,13 @@ public class FixedThreadPool implements ThreadPool {
 
     public FixedThreadPool(int numThreads) {
         if (numThreads <= 0) {
-            throw new IllegalArgumentException("number of thread less than or equal to zero was passed");
+            throw new IllegalArgumentException("Number of threads less than or equal to zero was passed");
         }
 
         tasks = new LinkedBlockingQueue<>();
         workers = new PoolWorker[numThreads];
         activeWorkersCount.set(numThreads);
-        for (int threadIndex = 0; threadIndex < numThreads; threadIndex++) {
+        for (int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {
             workers[threadIndex] = new PoolWorker();
             workers[threadIndex].start();
         }
@@ -35,16 +35,16 @@ public class FixedThreadPool implements ThreadPool {
     @Override
     public void submit(Runnable task) {
         if (isShutdown.get()) {
-            throw new IllegalStateException("thread pool was terminated");
+            throw new IllegalStateException("Thread pool was terminated");
         }
 
         if (task == null) {
-            throw new NullPointerException("task is null");
+            throw new NullPointerException("Task is null");
         }
 
         boolean isSubmitted = tasks.offer(task);
         if (!isSubmitted) {
-            throw new RejectedExecutionException("not enough space in the task queue");
+            throw new RejectedExecutionException("Not enough space in the task queue");
         }
     }
 
@@ -112,7 +112,6 @@ public class FixedThreadPool implements ThreadPool {
                     }
                     task.run();
                 } catch (InterruptedException e) {
-                    System.err.printf("Pool worker \"%s\" has been interrupted\n", this.getName());
                     Thread.currentThread().interrupt();
                 } catch (RuntimeException e) {
                     System.err.println("Task has failed:");
@@ -121,6 +120,7 @@ public class FixedThreadPool implements ThreadPool {
             }
 
             finishWork();
+            System.err.printf("Pool worker \"%s\" has been interrupted\n", this.getName());
         }
 
         private void finishWork() {

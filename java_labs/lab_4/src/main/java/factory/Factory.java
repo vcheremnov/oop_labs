@@ -9,29 +9,55 @@ import factory.production.AssemblyShop;
 import factory.production.ProductionController;
 import factory.sales.SalesDepartment;
 import factory.supply.Supplies;
+import misc.Observable;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
-public class Factory {
+public class Factory extends Observable {
     private static final String configFilename = "factory.properties";
 
+    private boolean isStarted = false;
+
+    private int bodySuppliersNumber;
     private Supplies<Body> bodySupplies;
+
+    private int engineSuppliersNumber;
     private Supplies<Engine> engineSupplies;
+
+    private int accessorySuppliersNumber;
     private Supplies<Accessory> accessorySupplies;
 
+
+    private int bodyWarehouseCapacity;
     private Warehouse<Car> carWarehouse;
+
+    private int carWarehouseCapacity;
     private Warehouse<Body> bodyWarehouse;
+
+    private int engineWarehouseCapacity;
     private Warehouse<Engine> engineWarehouse;
+
+    private int accessoryWarehouseCapacity;
     private Warehouse<Accessory> accessoryWarehouse;
 
-    private ProductionController controller;
-    private AssemblyShop assemblyShop;
-    private SalesDepartment salesDepartment;
 
+    private int workersNumber;
+    private ProductionController productionController;
+    private AssemblyShop assemblyShop;
+
+    private int dealersNumber;
+    private SalesDepartment salesDepartment;
+    private boolean isLogging;
+
+    static public class Property extends Observable.Property {
+        public static final Property IS_STARTED = new Property("IS_STARTED");
+
+        protected Property(String name) {
+            super(name);
+        }
+    }
 
     public Factory() throws FactoryLoadingException {
         Properties props = new Properties();
@@ -41,27 +67,38 @@ public class Factory {
                 throw new FactoryLoadingException(msg);
             }
             props.load(configFile);
-            init(props);
+            parseProperties(props);
         } catch (IOException | NumberFormatException e) {
             throw new FactoryLoadingException("Failed to initialize the factory", e);
         }
     }
 
     public void startProduction() {
-        salesDepartment.startSales();
-        bodySupplies.startSupplies();
-        engineSupplies.startSupplies();
-        accessorySupplies.startSupplies();
-        controller.startSupervision();
+        if (!isStarted) {
+            initialize();
+            salesDepartment.startSales();
+            bodySupplies.startSupplies();
+            engineSupplies.startSupplies();
+            accessorySupplies.startSupplies();
+            productionController.startSupervision();
+
+            isStarted = true;
+            firePropertyChanged(Property.IS_STARTED, false, true);
+        }
     }
 
     public void stopProduction() {
-        salesDepartment.stopSales();
-        bodySupplies.startSupplies();
-        engineSupplies.startSupplies();
-        accessorySupplies.startSupplies();
-        assemblyShop.stopProduction();
-        controller.stopSupervision();
+        if (isStarted) {
+            salesDepartment.stopSales();
+            bodySupplies.stopSupplies();
+            engineSupplies.stopSupplies();
+            accessorySupplies.stopSupplies();
+            assemblyShop.stopProduction();
+            productionController.stopSupervision();
+
+            isStarted = false;
+            firePropertyChanged(Property.IS_STARTED, true, false);
+        }
     }
 
 
@@ -104,38 +141,35 @@ public class Factory {
     }
 
 
-    private void init(Properties props) {
-        String bodyWarehouseCapacity = props.getProperty("bodyWarehouseCapacity");
-        bodyWarehouse = new Warehouse<>(Integer.parseInt(bodyWarehouseCapacity));
+    private void initialize() {
+        bodyWarehouse = new Warehouse<>(bodyWarehouseCapacity);
+        engineWarehouse = new Warehouse<>(engineWarehouseCapacity);
+        accessoryWarehouse  = new Warehouse<>(accessoryWarehouseCapacity);
+        carWarehouse = new Warehouse<>(carWarehouseCapacity);
 
-        String engineWarehouseCapacity = props.getProperty("engineWarehouseCapacity");
-        engineWarehouse = new Warehouse<>(Integer.parseInt(engineWarehouseCapacity));
+        bodySupplies = new Supplies<>(bodySuppliersNumber, bodyWarehouse, Body::new);
+        engineSupplies = new Supplies<>(engineSuppliersNumber, engineWarehouse, Engine::new);
+        accessorySupplies = new Supplies<>(accessorySuppliersNumber, accessoryWarehouse, Accessory::new);
 
-        String accessoryWarehouseCapacity = props.getProperty("accessoryWarehouseCapacity");
-        accessoryWarehouse  = new Warehouse<>(Integer.parseInt(accessoryWarehouseCapacity));
-
-        String carWarehouseCapacity = props.getProperty("carWarehouseCapacity");
-        carWarehouse = new Warehouse<>(Integer.parseInt(carWarehouseCapacity));
-
-
-        int bodyProvidersNumber = Integer.parseInt(props.getProperty("bodyProvidersNumber"));
-        bodySupplies = new Supplies<>(bodyProvidersNumber, bodyWarehouse, Body::new);
-
-        int engineProvidersNumber = Integer.parseInt(props.getProperty("engineProvidersNumber"));
-        engineSupplies = new Supplies<>(engineProvidersNumber, engineWarehouse, Engine::new);
-
-        int accessoryProvidersNumber = Integer.parseInt(props.getProperty("accessoryProvidersNumber"));
-        accessorySupplies = new Supplies<>(accessoryProvidersNumber, accessoryWarehouse, Accessory::new);
-
-
-        int workersNumber = Integer.parseInt(props.getProperty("workersNumber"));
         assemblyShop = new AssemblyShop(workersNumber, this);
-        controller = new ProductionController(assemblyShop, carWarehouse);
+        productionController = new ProductionController(assemblyShop, carWarehouse);
 
-
-        int dealersNumber = Integer.parseInt(props.getProperty("dealersNumber"));
-        boolean isLogging = Boolean.parseBoolean(props.getProperty("logSale"));
         salesDepartment = new SalesDepartment(dealersNumber, this);
         salesDepartment.setLogging(isLogging);
+    }
+
+    private void parseProperties(Properties props) {
+        bodyWarehouseCapacity = Integer.parseInt(props.getProperty("bodyWarehouseCapacity"));
+        engineWarehouseCapacity = Integer.parseInt(props.getProperty("engineWarehouseCapacity"));
+        accessoryWarehouseCapacity = Integer.parseInt(props.getProperty("accessoryWarehouseCapacity"));
+        carWarehouseCapacity = Integer.parseInt(props.getProperty("carWarehouseCapacity"));
+
+        bodySuppliersNumber = Integer.parseInt(props.getProperty("bodySuppliersNumber"));
+        engineSuppliersNumber = Integer.parseInt(props.getProperty("engineSuppliersNumber"));
+        accessorySuppliersNumber = Integer.parseInt(props.getProperty("accessorySuppliersNumber"));
+
+        workersNumber = Integer.parseInt(props.getProperty("workersNumber"));
+        dealersNumber = Integer.parseInt(props.getProperty("dealersNumber"));
+        isLogging = Boolean.parseBoolean(props.getProperty("logSale"));
     }
 }

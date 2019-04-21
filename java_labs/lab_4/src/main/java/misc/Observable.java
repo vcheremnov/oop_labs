@@ -7,12 +7,11 @@ import java.beans.PropertyChangeSupport;
 public abstract class Observable {
     private PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    static public abstract class Property {
+    static public class Property {
         private String name;
 
-        public Property(String name) {
-            this.name = this.getClass().getName() + ":" + name;
-            System.out.println("property " + this.name);
+        protected Property(String name) {
+            this.name = getClass().getName() + ":" + name;
         }
     }
 

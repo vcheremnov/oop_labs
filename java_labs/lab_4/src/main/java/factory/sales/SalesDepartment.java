@@ -14,7 +14,7 @@ public class SalesDepartment extends Delayable {
     private final Factory factory;
     private AtomicInteger carsSold = new AtomicInteger(0);
 
-    private Thread thread;
+    private int dealersNumber;
     private ThreadPool dealersPool;
     private Runnable dealerTask;
 
@@ -36,48 +36,41 @@ public class SalesDepartment extends Delayable {
         }
 
         this.factory = factory;
+        this.dealersNumber = dealersNumber;
         dealersPool = new FixedThreadPool(dealersNumber);
 
         dealerTask = () -> {
-            try {
-                Car car = this.factory.getCarWarehouse().takeItem();
-                Thread.sleep(getDelay());
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Car car = this.factory.getCarWarehouse().takeItem();
+                    Thread.sleep(getDelay());
 
-                int oldCarsSold = carsSold.getAndIncrement();
-                firePropertyChanged(Property.CARS_SOLD, oldCarsSold, carsSold.get());
+                    int oldCarsSold = carsSold.getAndIncrement();
+                    firePropertyChanged(Property.CARS_SOLD, oldCarsSold, carsSold.get());
 
-                if (isLogging) {
-                    writeLogs(car, Thread.currentThread().getId());
+                    if (isLogging) {
+                        writeLogs(car, Thread.currentThread().getId());
+                    }
+                } catch (InterruptedException e) {
+                    break;
                 }
-            } catch (InterruptedException e) {
-                System.err.println("Dealer task has been interrupted");
             }
+            System.out.println("Dealer №" + Thread.currentThread().getId() + " has been stopped");
         };
     }
 
     public void startSales() {
-        thread = new Thread(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    int carsAvailable = factory.getCarWarehouse().getItemsNumber();
-                    for (int i = 0; i < carsAvailable; i++) {
-                        dealersPool.submit(dealerTask);
-                    }
-                    factory.getCarWarehouse().wait();
-                    // TODO: can this thread wait forever if it is interrupted before?
-                }
-            } catch (InterruptedException e) {
-                System.out.println("Sales were interrupted");
-            }
-        });
-        thread.start();
+        for (int i = 0; i < dealersNumber; ++i) {
+            dealersPool.submit(dealerTask);
+        }
     }
 
     public void stopSales() {
-        if (thread != null) {
-            thread.interrupt();
-        }
         dealersPool.shutdownNow();
+    }
+
+    public int getDealersNumber() {
+        return dealersNumber;
     }
 
     public int getCarsSold() {

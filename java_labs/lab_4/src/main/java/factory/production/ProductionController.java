@@ -20,7 +20,7 @@ public class ProductionController {
                 synchronized (warehouse) {
                     while (!Thread.currentThread().isInterrupted()) {
                         int emptyPlaces = warehouse.getCapacity() - warehouse.getItemsNumber();
-                        int incomingCars = assemblyShop.getIncomingCars();
+                        int incomingCars = assemblyShop.getCarsRequested();
                         int requiredCars = emptyPlaces - incomingCars;
 
                         if (requiredCars > 0) {

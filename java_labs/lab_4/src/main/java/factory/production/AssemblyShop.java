@@ -13,9 +13,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AssemblyShop extends Delayable {
     private final Factory factory;
 
-    private AtomicInteger incomingCars = new AtomicInteger(0);
+    private AtomicInteger carsRequested = new AtomicInteger(0);
     private AtomicInteger carsProduced = new AtomicInteger(0);
 
+    private int workersNumber;
     private ThreadPool workersPool;
     private Runnable workerTask;
 
@@ -26,13 +27,13 @@ public class AssemblyShop extends Delayable {
         protected Property(String name) {
             super(name);
         }
-
     }
     public AssemblyShop(int workersNumber, Factory factory) {
         if (workersNumber < 1) {
             throw new IllegalArgumentException("Number of workers is less than 1");
         }
 
+        this.workersNumber = workersNumber;
         this.factory = factory;
         workersPool = new FixedThreadPool(workersNumber);
 
@@ -47,16 +48,14 @@ public class AssemblyShop extends Delayable {
                 Car car = new Car(engine, body, accessory);
                 this.factory.getCarWarehouse().putItem(car);
 
-                int oldIncomingCars = incomingCars.getAndDecrement();
-                firePropertyChanged(Property.INCOMING_CARS, oldIncomingCars, incomingCars.get());
+                int oldCarsRequested = carsRequested.getAndDecrement();
+                firePropertyChanged(Property.INCOMING_CARS, oldCarsRequested, carsRequested.get());
 
                 int oldCarsProduced = carsProduced.getAndIncrement();
                 firePropertyChanged(Property.CARS_PRODUCED, oldCarsProduced, carsProduced.get());
             } catch (InterruptedException e) {
                 System.err.println("Worker task has been interrupted");
             }
-
-            // TODO: decide where to place update of counters
         };
     }
 
@@ -65,16 +64,20 @@ public class AssemblyShop extends Delayable {
             throw new IllegalArgumentException("Requested amount of cars is less than 0");
         }
 
-        int oldValue = incomingCars.getAndAdd(requestedAmount);
+        int oldValue = carsRequested.getAndAdd(requestedAmount);
         for (int i = 0; i < requestedAmount; i++) {
             workersPool.submit(workerTask);
         }
 
-        firePropertyChanged(Property.INCOMING_CARS, oldValue, incomingCars.get());
+        firePropertyChanged(Property.INCOMING_CARS, oldValue, carsRequested.get());
     }
 
-    public int getIncomingCars() {
-        return incomingCars.get();
+    public int getWorkersNumber() {
+        return workersNumber;
+    }
+
+    public int getCarsRequested() {
+        return carsRequested.get();
     }
 
     public int getCarsProduced() {

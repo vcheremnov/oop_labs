@@ -1,7 +1,6 @@
 package factory.supply;
 
 import factory.Warehouse;
-import factory.details.Detail;
 import misc.Delayable;
 import threadpool.FixedThreadPool;
 import threadpool.ThreadPool;
@@ -15,12 +14,12 @@ public class Supplies<T> extends Delayable {
     private final Warehouse<T> warehouse;
     private AtomicInteger detailsProduced = new AtomicInteger(0);
 
-    private Thread thread;
+    private int suppliersNumber;
     private ThreadPool suppliersPool;
     private Runnable supplierTask;
 
     static public class Property extends Delayable.Property {
-        static public final Property DETAILS_PRODUCED = new Property("DETAILS_PRODUCED");
+        public static final Property DETAILS_PRODUCED = new Property("DETAILS_PRODUCED");
 
         protected Property(String name) {
             super(name);
@@ -34,47 +33,37 @@ public class Supplies<T> extends Delayable {
             throw new IllegalArgumentException("Number of suppliers is less than 1");
         }
 
+        this.suppliersNumber = suppliersNumber;
         suppliersPool = new FixedThreadPool(suppliersNumber);
         supplierTask = () -> {
-            try {
-                Thread.sleep(getDelay());
-                T detail = this.ctor.get();
-                this.warehouse.putItem(detail);
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(getDelay());
+                    T detail = this.ctor.get();
+                    this.warehouse.putItem(detail);
 
-                int oldDetailsProduced = detailsProduced.getAndIncrement();
-                firePropertyChanged(Property.DETAILS_PRODUCED, oldDetailsProduced, detailsProduced.get());
-            } catch (InterruptedException e) {
-                System.out.println("Provider has finished supply");
+                    int oldDetailsProduced = detailsProduced.getAndIncrement();
+                    firePropertyChanged(Property.DETAILS_PRODUCED, oldDetailsProduced, detailsProduced.get());
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
+            System.out.println("Supplier №" + Thread.currentThread().getId() + " has been stopped");
         };
     }
 
     public void startSupplies() {
-        thread = new Thread(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    int itemsNumber = warehouse.getItemsNumber();
-                    int capacity = warehouse.getCapacity();
-                    int requiredItems = capacity - itemsNumber;
-
-                    for (int i = 0; i < requiredItems; i++) {
-                        suppliersPool.submit(supplierTask);
-                    }
-
-                    warehouse.wait();
-                }
-            } catch (InterruptedException e) {
-                System.out.println("Provider has finished supplies");
-            }
-        });
-        thread.start();
+        for (int i = 0; i < suppliersNumber; i++) {
+            suppliersPool.submit(supplierTask);
+        }
     }
 
     public void stopSupplies() {
-        if (thread != null) {
-            thread.interrupt();
-        }
         suppliersPool.shutdownNow();
+    }
+
+    public int getSuppliersNumber() {
+        return suppliersNumber;
     }
 
     public int getDetailsProduced() {
