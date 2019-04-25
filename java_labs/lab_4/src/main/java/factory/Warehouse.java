@@ -58,18 +58,6 @@ public class Warehouse <T> extends Observable {
         return item;
     }
 
-    public synchronized List<T> takeAllItems() {
-        List<T> itemsList = new ArrayList<>(items);
-        items.clear();
-
-        int oldValue = itemsNumber.getAndSet(0);
-        firePropertyChanged(Property.ITEMS_NUMBER, oldValue, itemsNumber.get());
-
-        notifyAll();
-
-        return itemsList;
-    }
-
     public int getItemsNumber() {
         return itemsNumber.get();
     }

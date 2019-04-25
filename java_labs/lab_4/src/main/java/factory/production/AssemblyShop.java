@@ -54,7 +54,7 @@ public class AssemblyShop extends Delayable {
                 int oldCarsProduced = carsProduced.getAndIncrement();
                 firePropertyChanged(Property.CARS_PRODUCED, oldCarsProduced, carsProduced.get());
             } catch (InterruptedException e) {
-                System.err.println("Worker task has been interrupted");
+                Thread.currentThread().interrupt();
             }
         };
     }

@@ -15,8 +15,6 @@ import javafx.stage.Stage;
 import misc.Delayable;
 
 public class MainViewController {
-
-    private Stage stage;
     private Factory factory;
 
     @FXML
@@ -98,7 +96,6 @@ public class MainViewController {
     private Label soldNumberLabel;
 
     public void init(Stage stage, Factory factory) {
-        this.stage = stage;
         this.factory = factory;
 
         stage.setOnCloseRequest(e -> {

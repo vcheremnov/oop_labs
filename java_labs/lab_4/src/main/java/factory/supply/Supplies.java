@@ -48,7 +48,6 @@ public class Supplies<T> extends Delayable {
                     break;
                 }
             }
-            System.out.println("Supplier №" + Thread.currentThread().getId() + " has been stopped");
         };
     }
 

@@ -14,12 +14,13 @@ public class SalesDepartment extends Delayable {
     private final Factory factory;
     private AtomicInteger carsSold = new AtomicInteger(0);
 
+    private AtomicInteger idGenerator = new AtomicInteger(0);
     private int dealersNumber;
     private ThreadPool dealersPool;
     private Runnable dealerTask;
 
     private boolean isLogging = true;
-    private static final Logger logger = LogManager.getLogger(SalesDepartment.class);
+    private static final Logger logger = LogManager.getLogger();
     private final static String logFormatLine = "Dealer<%d>:Auto<%s>(Body:<%s>, Motor:<%s>, Accessory:<%s>)";
 
     static public class Property extends Delayable.Property {
@@ -40,6 +41,7 @@ public class SalesDepartment extends Delayable {
         dealersPool = new FixedThreadPool(dealersNumber);
 
         dealerTask = () -> {
+            int dealerNo = idGenerator.getAndIncrement();
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Car car = this.factory.getCarWarehouse().takeItem();
@@ -49,13 +51,13 @@ public class SalesDepartment extends Delayable {
                     firePropertyChanged(Property.CARS_SOLD, oldCarsSold, carsSold.get());
 
                     if (isLogging) {
-                        writeLogs(car, Thread.currentThread().getId());
+                        writeLogs(car, dealerNo);
                     }
                 } catch (InterruptedException e) {
                     break;
                 }
             }
-            System.out.println("Dealer №" + Thread.currentThread().getId() + " has been stopped");
+            idGenerator.decrementAndGet();
         };
     }
 

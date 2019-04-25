@@ -31,7 +31,7 @@ public class ProductionController {
                     }
                 }
             } catch (InterruptedException e) {
-                System.out.println("Production controller has been stopped");
+                Thread.currentThread().interrupt();
             }
         });
         thread.start();

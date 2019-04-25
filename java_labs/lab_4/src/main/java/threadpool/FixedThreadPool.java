@@ -93,7 +93,6 @@ public class FixedThreadPool implements ThreadPool {
 
     @Override
     public void awaitTermination(long timeout) throws InterruptedException {
-        // TODO: add loop with "wait(..)" where timeout decrements with time
         synchronized (awaitLock) {
             if (isRunning.get()) {
                 awaitLock.wait(timeout);
@@ -120,7 +119,6 @@ public class FixedThreadPool implements ThreadPool {
             }
 
             finishWork();
-            System.err.printf("Pool worker \"%s\" has been interrupted\n", this.getName());
         }
 
         private void finishWork() {

@@ -9,11 +9,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 
 public class JavafxApp extends Application {
-    private Stage primaryStage;
     private static Factory factory;
 
     public static void main(String[] args) {
@@ -29,12 +27,6 @@ public class JavafxApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        this.primaryStage = primaryStage;
-        primaryStage.setTitle("Car factory");
-        showPrimaryStage();
-    }
-
-    private void showPrimaryStage() throws IOException {
         FXMLLoader loader = new FXMLLoader();
         URL guiLocation = getClass().getClassLoader().getResource("gui.fxml");
         loader.setLocation(guiLocation);
@@ -45,6 +37,7 @@ public class JavafxApp extends Application {
         MainViewController controller = loader.getController();
         controller.init(primaryStage, factory);
 
+        primaryStage.setTitle("Car factory");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
