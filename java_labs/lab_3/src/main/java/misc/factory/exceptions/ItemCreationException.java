@@ -1,4 +1,4 @@
-package misc.itemfactory.exceptions;
+package misc.factory.exceptions;
 
 public class ItemCreationException extends ItemFactoryException {
     public ItemCreationException() {

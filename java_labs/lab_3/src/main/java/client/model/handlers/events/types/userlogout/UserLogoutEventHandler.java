@@ -9,15 +9,14 @@ import protocol.events.types.userlogout.UserLogoutEvent;
 
 public class UserLogoutEventHandler extends EventHandler {
     @Override
-    protected void handleMessageImpl(Event message, ChatSession session) throws MessageHandlerException {
+    protected void handleMessageImpl(Event message, ChatSession session) {
         UserLogoutEvent event = (UserLogoutEvent) message;
         String username = event.getUsername();
 
         ChatSessionData sessionData = session.getSessionData();
         sessionData.removeUser(username);
 
-//        session.notifyObservers();
-        // TODO: notify observers!!!
+        session.notifyObservers(ChatSession.Property.USER_LOGOUT, null, username);
     }
 
     @Override

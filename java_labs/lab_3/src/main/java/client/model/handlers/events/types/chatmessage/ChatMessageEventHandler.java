@@ -10,15 +10,14 @@ import protocol.model.ChatMessage;
 
 public class ChatMessageEventHandler extends EventHandler {
     @Override
-    protected void handleMessageImpl(Event message, ChatSession session) throws MessageHandlerException {
+    protected void handleMessageImpl(Event message, ChatSession session) {
         ChatMessageEvent event = (ChatMessageEvent) message;
         ChatMessage chatMessage = event.getChatMessage();
 
         ChatSessionData sessionData = session.getSessionData();
         sessionData.putMessage(chatMessage);
 
-//        session.notifyObservers();
-        // TODO: notify observers!!!
+        session.notifyObservers(ChatSession.Property.GOT_MESSAGE, null, chatMessage);
     }
 
     @Override

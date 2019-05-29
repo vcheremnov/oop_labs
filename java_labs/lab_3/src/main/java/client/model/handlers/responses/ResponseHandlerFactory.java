@@ -1,9 +1,9 @@
 package client.model.handlers.responses;
 
-import misc.itemfactory.ItemFactory;
-import misc.itemfactory.exceptions.ItemCreationException;
-import misc.itemfactory.exceptions.ItemFactoryLoadingException;
-import misc.itemfactory.exceptions.ItemNotFoundException;
+import misc.factory.ItemFactory;
+import misc.factory.exceptions.ItemCreationException;
+import misc.factory.exceptions.ItemFactoryLoadingException;
+import misc.factory.exceptions.ItemNotFoundException;
 
 public class ResponseHandlerFactory extends ItemFactory {
     private static volatile ResponseHandlerFactory instance;
@@ -27,7 +27,7 @@ public class ResponseHandlerFactory extends ItemFactory {
 
     @Override
     protected String getConfigFilepath() {
-        return "responseHandlers.properties";
+        return "client/responseHandlers.properties";
     }
 
     @Override

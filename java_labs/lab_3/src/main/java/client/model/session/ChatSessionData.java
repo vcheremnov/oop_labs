@@ -1,13 +1,11 @@
 package client.model.session;
 
-import client.model.misc.Observable;
 import protocol.model.ChatMessage;
 
-import java.beans.PropertyChangeEvent;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ChatSessionData extends Observable {
+public class ChatSessionData {
     private AtomicReference<String> username = new AtomicReference<>();
     private AtomicReference<String> sessionID = new AtomicReference<>();
 
@@ -16,16 +14,6 @@ public class ChatSessionData extends Observable {
 
     private NavigableSet<ChatMessage> messages = new TreeSet<>();
 
-    public static class Property extends Observable.Property {
-        public static final Property MESSAGE_ADDED = new Property("MESSAGE_ADDED");
-        public static final Property USER_ADDED = new Property("USER_ADDED");
-        public static final Property USER_REMOVED = new Property("USER_REMOVED");
-        public static final Property SESSION_ESTABLISHED = new Property("SESSION_ESTABLISHED");
-
-        protected Property(String name) {
-            super(name);
-        }
-    }
 
     public String getUsername() {
         return username.get();
@@ -42,7 +30,6 @@ public class ChatSessionData extends Observable {
 
     public void setSessionID(String sessionID) {
         this.sessionID.set(sessionID);
-        firePropertyChanged(Property.SESSION_ESTABLISHED, false, true);
     }
 
 
@@ -52,12 +39,10 @@ public class ChatSessionData extends Observable {
 
     public synchronized void putMessage(ChatMessage chatMessage) {
         messages.add(chatMessage);
-        firePropertyChanged(Property.MESSAGE_ADDED, false, true);
     }
 
     public synchronized void putMessages(Collection<? extends ChatMessage> chatMessages) {
         messages.addAll(chatMessages);
-        firePropertyChanged(Property.MESSAGE_ADDED, false, true);
     }
 
     public synchronized ChatMessage[] getMessages() {
@@ -91,7 +76,6 @@ public class ChatSessionData extends Observable {
             return;
         }
         users.add(user);
-        firePropertyChanged(Property.USER_ADDED, false, true);
     }
 
     public synchronized void addUsers(Collection<? extends String> users) {
@@ -106,6 +90,5 @@ public class ChatSessionData extends Observable {
             return;
         }
         users.remove(user);
-        firePropertyChanged(Property.USER_REMOVED, false, true);
     }
 }

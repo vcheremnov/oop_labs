@@ -6,7 +6,7 @@ import client.model.handlers.events.EventHandlerFactory;
 import client.model.handlers.responses.ResponseHandler;
 import client.model.handlers.responses.ResponseHandlerFactory;
 import client.model.session.ChatSession;
-import misc.itemfactory.exceptions.ItemFactoryException;
+import misc.factory.exceptions.ItemFactoryException;
 import misc.network.ClientSession;
 import misc.parser.MessageParser;
 import protocol.MessageType;
@@ -48,7 +48,7 @@ public class MessageReceiver implements Runnable {
             e.printStackTrace();
         } finally {
             session.close();
-            // TODO: notify observers
+            chatSession.notifyObservers(ChatSession.Property.DISCONNECTED, null, true);
         }
     }
 

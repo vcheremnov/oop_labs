@@ -24,9 +24,7 @@ public class LoginResponseHandler extends ResponseHandler {
             sessionData.putMessage(chatMessage);
         }
 
-        session.notifyObservers(ChatSession.Property.LOGGED_IN_PROPERTY);
-//        session.notifyObservers();
-        // TODO: notify observers!!!
+        session.notifyObservers(ChatSession.Property.LOGGED_IN, null, true);
     }
 
     @Override

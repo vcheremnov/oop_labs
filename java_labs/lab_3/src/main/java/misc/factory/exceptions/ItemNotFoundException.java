@@ -1,4 +1,4 @@
-package misc.itemfactory.exceptions;
+package misc.factory.exceptions;
 
 
 public class ItemNotFoundException extends ItemFactoryException {

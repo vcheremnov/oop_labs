@@ -3,6 +3,7 @@ package server.handlers.types.serverinfo;
 import protocol.commands.request.Request;
 import protocol.commands.types.serverinfo.ServerInfoRequest;
 import protocol.commands.types.serverinfo.ServerInfoResponseSuccess;
+import protocol.model.ServerInfo;
 import server.data.ChatDatabase;
 import server.handlers.RequestHandler;
 import misc.network.ClientSession;
@@ -24,10 +25,13 @@ public class ServerInfoRequestHandler extends RequestHandler {
             int maxClientsNumber = database.getMaxClientsNumber();
             List<String> users = database.getClientsNames();
 
+            ServerInfo serverInfo = new ServerInfo();
+            serverInfo.setServerName(serverName);
+            serverInfo.setMaxClientsNumber(maxClientsNumber);
+            serverInfo.setUsers(users);
+
             ServerInfoResponseSuccess response = new ServerInfoResponseSuccess();
-            response.setServerName(serverName);
-            response.setMaxClientsNumber(maxClientsNumber);
-            response.setUsers(users);
+            response.setServerInfo(serverInfo);
             setResponse(response);
         }
 

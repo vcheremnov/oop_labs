@@ -1,9 +1,9 @@
 package client.model.handlers.events;
 
-import misc.itemfactory.ItemFactory;
-import misc.itemfactory.exceptions.ItemCreationException;
-import misc.itemfactory.exceptions.ItemFactoryLoadingException;
-import misc.itemfactory.exceptions.ItemNotFoundException;
+import misc.factory.ItemFactory;
+import misc.factory.exceptions.ItemCreationException;
+import misc.factory.exceptions.ItemFactoryLoadingException;
+import misc.factory.exceptions.ItemNotFoundException;
 
 public class EventHandlerFactory extends ItemFactory {
     private static volatile EventHandlerFactory instance;
@@ -27,7 +27,7 @@ public class EventHandlerFactory extends ItemFactory {
 
     @Override
     protected String getConfigFilepath() {
-        return "eventHandlers.properties";
+        return "client/eventHandlers.properties";
     }
 
     @Override

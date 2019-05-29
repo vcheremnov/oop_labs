@@ -9,15 +9,14 @@ import protocol.events.types.userlogin.UserLoginEvent;
 
 public class UserLoginEventHandler extends EventHandler {
     @Override
-    protected void handleMessageImpl(Event message, ChatSession session) throws MessageHandlerException {
+    protected void handleMessageImpl(Event message, ChatSession session) {
         UserLoginEvent event = (UserLoginEvent) message;
         String username = event.getUsername();
 
         ChatSessionData sessionData = session.getSessionData();
         sessionData.addUser(username);
 
-//        session.notifyObservers();
-        // TODO: notify observers!!!
+        session.notifyObservers(ChatSession.Property.USER_LOGIN, null, username);
     }
 
     @Override

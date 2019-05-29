@@ -35,7 +35,7 @@ public class ServerApp {
 }
 
 class Server {
-    private static final String configFilepath = "config.properties";
+    private static final String configFilepath = "server/config.properties";
 
     private int port;
     private String hostname;
@@ -200,13 +200,10 @@ class Server {
                 return;
             }
 
-            List<String> clients;
             ChatDatabase database = chatServer.getDatabase();
-            synchronized (database) {
-                printClientsNumber();
-                clients = database.getClientsNames();
-            }
+            List<String> clients = database.getClientsNames();
 
+            System.out.println(String.format("Clients: %d/%d", clients.size(), maxClientsNumber));
             for (String clientName: clients) {
                 System.out.println(String.format("* %s", clientName));
             }

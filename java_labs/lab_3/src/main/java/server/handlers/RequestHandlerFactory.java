@@ -1,9 +1,9 @@
 package server.handlers;
 
-import misc.itemfactory.ItemFactory;
-import misc.itemfactory.exceptions.ItemCreationException;
-import misc.itemfactory.exceptions.ItemFactoryLoadingException;
-import misc.itemfactory.exceptions.ItemNotFoundException;
+import misc.factory.ItemFactory;
+import misc.factory.exceptions.ItemCreationException;
+import misc.factory.exceptions.ItemFactoryLoadingException;
+import misc.factory.exceptions.ItemNotFoundException;
 import server.data.ChatDatabase;
 
 public class RequestHandlerFactory extends ItemFactory {
@@ -29,7 +29,7 @@ public class RequestHandlerFactory extends ItemFactory {
 
     @Override
     protected String getConfigFilepath() {
-        return "requestHandlers.properties";
+        return "server/requestHandlers.properties";
     }
 
     @Override

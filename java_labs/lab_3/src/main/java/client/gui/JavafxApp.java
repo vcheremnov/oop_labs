@@ -17,7 +17,7 @@ public class JavafxApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader();
-        URL guiLocation = getClass().getClassLoader().getResource("gui/mainview.fxml");
+        URL guiLocation = getClass().getClassLoader().getResource("client/gui/mainview.fxml");
         loader.setLocation(guiLocation);
 
         Parent root = loader.load();

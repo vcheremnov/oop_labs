@@ -1,8 +1,8 @@
-package misc.itemfactory;
+package misc.factory;
 
-import misc.itemfactory.exceptions.ItemCreationException;
-import misc.itemfactory.exceptions.ItemFactoryLoadingException;
-import misc.itemfactory.exceptions.ItemNotFoundException;
+import misc.factory.exceptions.ItemCreationException;
+import misc.factory.exceptions.ItemFactoryLoadingException;
+import misc.factory.exceptions.ItemNotFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;

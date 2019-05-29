@@ -1,13 +1,8 @@
 package client.gui.controllers;
 
-import client.gui.JavafxApp;
 import client.model.session.ChatSession;
 import client.model.session.ChatSessionData;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.Property;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -51,7 +46,7 @@ public class MainViewController {
             // TODO: make a background task
             chatSession.connect(address, port);
             final ChatSessionData sessionData = chatSession.getSessionData();
-            chatSession.addPropertyChangeListener(ChatSession.Property.LOGGED_IN_PROPERTY, evt -> {
+            chatSession.addPropertyChangeListener(ChatSession.Property.LOGGED_IN, evt -> {
                 boolean hasLoggedIn = (boolean) evt.getNewValue();
                 if (hasLoggedIn) {
                     Platform.runLater(() -> {
